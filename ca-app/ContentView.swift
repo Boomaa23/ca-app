@@ -13,7 +13,7 @@ struct ContentView: View {
  
     var body: some View {
         TabView(selection: $selection){
-            Text(RequestHelper.caGet(relUrl: "/tutors"))
+            Text(Parser.getTutors().description)
                 .font(.title)
                 .tabItem {
                     VStack {
