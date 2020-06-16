@@ -42,10 +42,26 @@ class Parser {
                     } else {
                         continue
                     }
+                    
                     var text: String = try card.getElementsByTag("span").text()
                     text = String(text[text.firstIndex(of: " ")!...])
-                    print(text)
+                    
+                    var grade: Grade = Grade.invalid
+                    for grLoop: Grade in Grade.allCases() {
+                        if text.lowercased().contains("\(grLoop)") {
+                            grade = grLoop
+                            break
+                        }
+                    }
+                    
                     let foundClasses = parseDescription(text)
+                    if tutors[name] != nil {
+                        tutors[name]!.subjects.append(contentsOf: foundClasses.subjRange)
+                    } else {
+                        let nameSep = name.firstIndex(of: Character(" "))!
+                        tutors[name] = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
+                                             grade: grade, subjects: foundClasses.subjRange)
+                    }
                 }
             }
         } catch let error {
@@ -55,11 +71,16 @@ class Parser {
         return tutors
     }
     
-    private static func parseDescription(_ desc: String) -> (Section, [SubjectRange]) {
+    private static func parseDescription(_ desc: String) -> (section: Section, subjRange: [SubjectRange]) {
         var sectionRtn: Section?
         var subjRangeRtn = [SubjectRange]()
         
-        let info = String(String(desc[desc.range(of: "with ")!.upperBound...desc.range(of: ". Book")!.lowerBound]).replacingOccurrences(of: ".", with: ""))
+        var startIndex = desc.range(of: "with ")?.upperBound ?? desc.startIndex
+        let endIndex = desc.range(of: ". Book")!.lowerBound
+        if endIndex < startIndex {
+            startIndex = desc.startIndex
+        }
+        var info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: ""))
         for section: Section in Section.allCases {
             let loopSec = "\(section)".lowercased()
             if info.lowercased().contains(loopSec) {
@@ -69,6 +90,10 @@ class Parser {
         }
         if sectionRtn == nil && (info.lowercased().contains("chemistry") || info.lowercased().contains("biology") || info.lowercased().contains("physics")) {
             sectionRtn = Section.science
+            info = String(info.replacingOccurrences(of: "/", with: " "))
+        }
+        if sectionRtn == nil && (info.lowercased().contains("spanish") || info.lowercased().contains("french")) {
+            sectionRtn = Section.language
         }
         
         let thrFound = info.range(of: "through ");

@@ -11,11 +11,11 @@ import Foundation
 struct Tutor {
     let firstName: String
     let lastName: String
-    let subjects: [SubjectRange]
-    let href: String?
+    let grade: Grade
+    var subjects: [SubjectRange]
     
     func getRelUrl() -> String {
-        return href ?? (firstName.lowercased() + "_" + lastName.lowercased())
+        return firstName.lowercased() + "_" + lastName.lowercased()
     }
     
     func getFullName() -> String {
@@ -43,55 +43,78 @@ struct Subject {
     let baseName: String
     let section: Section
     let relation: ClassRelation
-    let prefixName: Bool
+    let prefix: (value: String, loc: PrefixLocation)
     let levels: [String]
     
-    init(_ baseName: String,_ section: Section,_ relation: ClassRelation,_ prefixName: Bool,_ levels: [String]) {
+    init(_ baseName: String,_ section: Section,_ relation: ClassRelation,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
         self.baseName = baseName
         self.section = section
         self.relation = relation
-        self.prefixName = prefixName
+        self.prefix = prefix
         self.levels = levels
+    }
+    
+    func withPrefix(_ level: String) -> String {
+        switch prefix.loc {
+            case .after:
+                return "\(level) \(prefix.value)"
+            case .before:
+                return "\(prefix.value) \(level)"
+            case .none:
+                return level
+        }
     }
     
     static func getAll() -> [String: Subject] {
         return [
-            "tech": Subject("tech", Section.tech, ClassRelation.distinct, false, []),
-            "mathCommon": Subject("mathCommon", Section.math, ClassRelation.linear, true,
-                    ["1 Support", "1", "1 Enrichment", "2 Support", "2 Enrichment", "2", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus"]),
-            "mathCalculus": Subject("mathCalculus", Section.math, ClassRelation.linear, false,
+            "tech": Subject("tech", Section.tech, ClassRelation.distinct, ("Tech", PrefixLocation.none), []),
+            "writing": Subject("writing", Section.writing, ClassRelation.distinct, ("Writing", PrefixLocation.none), []),
+            "mathCommon": Subject("mathCommon", Section.math, ClassRelation.linear, ("Math", PrefixLocation.before),
+                    ["1 Support", "1", "1+E", "2 Support", "2+E", "2", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus"]),
+            "mathCalculus": Subject("mathCalculus", Section.math, ClassRelation.linear, ("Math", PrefixLocation.none),
                     ["SBCC 150", "AP Calculus AB", "SBCC 160"]),
-            "mathOther": Subject("mathOther", Section.math, ClassRelation.distinct, false,
+            "mathOther": Subject("mathOther", Section.math, ClassRelation.distinct, ("Math", PrefixLocation.none),
                     ["SBCC 117", "AP Statistics", "Trigonometry", "IB Math", "Math Modeling"]),
-            "chemistry": Subject("chemistry", Section.science, ClassRelation.linear, false,
-                    ["Chemistry", "Honors Chemistry", "AP Chemistry"]),
-            "biology": Subject("biology", Section.science, ClassRelation.distinct, false,
+            "chemistry": Subject("chemistry", Section.science, ClassRelation.linear, ("Chemistry", PrefixLocation.after),
+                    ["", "Honors", "AP"]),
+            "biology": Subject("biology", Section.science, ClassRelation.distinct, ("Biology", PrefixLocation.none),
                     ["Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"]),
-            "physics": Subject("physics", Section.science, ClassRelation.linear, false,
+            "physics": Subject("physics", Section.science, ClassRelation.linear, ("Physics", PrefixLocation.none),
                     ["Conceptual Physics", "Physics", "AP Physics 1", "AP Physics 2"]),
-            "english": Subject("english", Section.english, ClassRelation.linear, true,
-                    ["Support", "Literacy", "9", "9 Honors", "10", "10 Honors", "11", "12", "AP Language", "AP Literature", "IB Lit"]),
-            "worldHistory": Subject("worldHistory", Section.history, ClassRelation.linear, true, ["", "AP"]),
-            "usHistory": Subject("usHistory", Section.history, ClassRelation.linear, true, ["", "AP"]),
-            "spanish": Subject("french", Section.language, ClassRelation.linear, true,
+            "englishLower": Subject("englishLower", Section.english, ClassRelation.linear, ("English", PrefixLocation.before),
+                    ["Literacy", "Support", "9", "9H", "10", "10H", "11", "12"]),
+            "englishUpper": Subject("englishUpper", Section.english, ClassRelation.distinct, ("English", PrefixLocation.none),
+                    ["AP Language", "AP Literature", "IB Year 1", "IB Year 2"]),
+            "worldHistory": Subject("worldHistory", Section.history, ClassRelation.linear, ("World History", PrefixLocation.after), ["", "AP"]),
+            "usHistory": Subject("usHistory", Section.history, ClassRelation.linear, ("US History", PrefixLocation.after), ["", "AP"]),
+            "spanish": Subject("french", Section.language, ClassRelation.linear, ("French", PrefixLocation.before),
                     ["1", "2", "3", "AP", "IB 1", "IB 2"]),
-            "french": Subject("spanish", Section.language, ClassRelation.linear, true,
+            "french": Subject("spanish", Section.language, ClassRelation.linear, ("Spanish", PrefixLocation.before),
                     ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"]),
         ]
     }
 }
 
 enum Section : CaseIterable {
-    case tech, math, science, english, history, language, other
+    case tech, math, science, english, writing, history, language, other
 }
 
 enum ClassRelation : CaseIterable {
     case linear, distinct
 }
 
+enum PrefixLocation : CaseIterable {
+    case before, after, none
+}
+
 enum Grade : Int {
+    case invalid = 0
     case freshman = 9
     case sophomore = 10
     case junior = 11
     case senior = 12
+    
+    static func allCases() -> [Grade] {
+        return [invalid, freshman, sophomore, junior, senior]
+    }
 }
