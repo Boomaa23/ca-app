@@ -48,7 +48,7 @@ struct ContentView: View {
                         }
                     }
                     .tag(2)
-            Text("GROUP SESSIONS")
+            Text(Parser.getGroupSessions().description)
                     .font(.title)
                     .tabItem {
                         VStack {

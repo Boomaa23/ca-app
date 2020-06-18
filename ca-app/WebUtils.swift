@@ -65,7 +65,11 @@ class Parser {
                 }
             }
         } catch let error {
-            print(error)
+            if error.localizedDescription.contains("failed to connect") {
+                return getTutors()
+            } else {
+                print(error)
+            }
         }
         print(tutors)
         return tutors
@@ -134,6 +138,32 @@ class Parser {
             return (Section.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [])])
         }
         return (sectionRtn!, subjRangeRtn)
+    }
+    
+    static func getGroupSessions() -> [GroupSession] {
+        var sessions = [GroupSession]()
+        let pageText = RequestHelper.caGet(relUrl: "group-tutoring")
+        do {
+            let parsed = try SwiftSoup.parse(pageText)
+            let cards = try parsed.getElementsByAttributeValue("data-ux", "ContentCard")
+            for card: Element in cards {
+                var title = try card.getElementsByAttributeValue("data-ux", "ContentCardHeading").first()!.text()
+                let titleAtIndex = title.range(of: " at ")
+                if titleAtIndex != nil {
+                    title = String(title[..<title.index(after: titleAtIndex!.lowerBound)])
+                }
+                let text = try card.getElementsByAttributeValue("data-ux", "ContentCardText").first()!.text()
+                let day = try card.getElementsByTag("strong").first()!.text().lowercased()
+                let pw = String(text[text.index(after: text.lastIndex(of: Character(" "))!)...])
+                let href = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
+                if (text.lowercased() != day) {
+                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!, pw: pw, zoom: href))
+                }
+            }
+        } catch let error {
+            print(error)
+        }
+        return sessions
     }
 }
 

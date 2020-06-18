@@ -1,5 +1,5 @@
 //
-//  TutorView2.swift
+//  TutorView.swift
 //  ca-app
 //
 //  Created by Nikhil on 6/18/20.
@@ -9,15 +9,24 @@
 import SwiftUI
 
 struct TutorView: View {
-    let tutors = Parser.getTutors().map{$0.value}
+    static let tutors = Parser.getTutors().sorted{$0.self < $1.self}.map{$0.value}
+    static let sections = TutorUtils.sortBySection(tutors)
+    static let sectionKeys = sections.map{$0.key}
+    static let sectionValues = sections.map{$0.value}
     
     var body: some View {
         ScrollView {
             VStack {
-                ForEach(tutors.indices) { tutor in
-                    Text(self.tutors[tutor].getFullName())
+                ForEach(TutorView.sectionKeys.indices, id: \.self) { section in
+                    VStack {
+                        Text(TutorView.sectionKeys[section].rawValue)
+                        ForEach(TutorView.sectionValues[section].indices) { tutor in
+                            Text(TutorView.sectionValues[section][tutor].getFullName())
+                        }
+                    }
                 }
             }
+            
         }
     }
 }

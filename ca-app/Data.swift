@@ -7,7 +7,9 @@
 //
 
 
-struct Tutor {
+struct Tutor : Comparable {
+    private static let counter = Counter()
+    let num: Int = counter.getNext()
     let firstName: String
     let lastName: String
     let grade: Grade
@@ -19,6 +21,14 @@ struct Tutor {
     
     func getFullName() -> String {
         return firstName + " " + lastName
+    }
+    
+    static func < (lhs: Tutor, rhs: Tutor) -> Bool {
+        return lhs.getRelUrl() < rhs.getRelUrl()
+    }
+    
+    static func == (lhs: Tutor, rhs: Tutor) -> Bool {
+        return lhs.getRelUrl() == rhs.getRelUrl()
     }
 }
 
@@ -100,7 +110,7 @@ struct Subject {
     }
 }
 
-enum Section : CaseIterable {
+enum Section : String, CaseIterable {
     case math, science, english, history, language, other
 }
 
@@ -118,4 +128,12 @@ enum Grade : Int, CaseIterable {
     case sophomore = 10
     case junior = 11
     case senior = 12
+}
+
+struct GroupSession {
+    let title: String
+    let dayOfWeek: DayOfWeek
+    let time: ClockTimeRange
+    let pw: String
+    let zoom: String
 }
