@@ -6,7 +6,6 @@
 //  Copyright © 2020 Charger Academy. All rights reserved.
 //
 
-import Foundation
 
 struct Tutor {
     let firstName: String
@@ -42,14 +41,12 @@ struct SubjectRange {
 struct Subject {
     let baseName: String
     let section: Section
-    let relation: ClassRelation
     let prefix: (value: String, loc: PrefixLocation)
     let levels: [String]
     
-    init(_ baseName: String,_ section: Section,_ relation: ClassRelation,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
+    init(_ baseName: String,_ section: Section,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
         self.baseName = baseName
         self.section = section
-        self.relation = relation
         self.prefix = prefix
         self.levels = levels
     }
@@ -65,38 +62,46 @@ struct Subject {
         }
     }
     
-    static func getAll() -> [String: Subject] {
+    static func fromOther(_ keyText: String) -> Subject? {
+        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art"]
+        for other: String in possibleOthers {
+            if keyText.contains(other) {
+                return Subject(other, Section.other, ("", PrefixLocation.none), [])
+            }
+        }
+        return nil
+    }
+    
+    static func getAllClasses() -> [String: Subject] {
         return [
-            "tech": Subject("tech", Section.tech, ClassRelation.distinct, ("Tech", PrefixLocation.none), []),
-            "writing": Subject("writing", Section.writing, ClassRelation.distinct, ("Writing", PrefixLocation.none), []),
-            "mathCommon": Subject("mathCommon", Section.math, ClassRelation.linear, ("Math", PrefixLocation.before),
+            "mathCommon": Subject("mathCommon", Section.math, ("Math", PrefixLocation.before),
                     ["1 Support", "1", "1+E", "2 Support", "2+E", "2", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus"]),
-            "mathCalculus": Subject("mathCalculus", Section.math, ClassRelation.linear, ("Math", PrefixLocation.none),
+            "mathCalculus": Subject("mathCalculus", Section.math, ("Math", PrefixLocation.none),
                     ["SBCC 150", "AP Calculus AB", "SBCC 160"]),
-            "mathOther": Subject("mathOther", Section.math, ClassRelation.distinct, ("Math", PrefixLocation.none),
+            "mathOther": Subject("mathOther", Section.math, ("Math", PrefixLocation.none),
                     ["SBCC 117", "AP Statistics", "Trigonometry", "IB Math", "Math Modeling"]),
-            "chemistry": Subject("chemistry", Section.science, ClassRelation.linear, ("Chemistry", PrefixLocation.after),
+            "chemistry": Subject("chemistry", Section.science, ("Chemistry", PrefixLocation.after),
                     ["", "Honors", "AP"]),
-            "biology": Subject("biology", Section.science, ClassRelation.distinct, ("Biology", PrefixLocation.none),
+            "biology": Subject("biology", Section.science, ("Biology", PrefixLocation.none),
                     ["Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"]),
-            "physics": Subject("physics", Section.science, ClassRelation.linear, ("Physics", PrefixLocation.none),
+            "physics": Subject("physics", Section.science, ("Physics", PrefixLocation.none),
                     ["Conceptual Physics", "Physics", "AP Physics 1", "AP Physics 2"]),
-            "englishLower": Subject("englishLower", Section.english, ClassRelation.linear, ("English", PrefixLocation.before),
+            "englishLower": Subject("englishLower", Section.english, ("English", PrefixLocation.before),
                     ["Literacy", "Support", "9", "9H", "10", "10H", "11", "12"]),
-            "englishUpper": Subject("englishUpper", Section.english, ClassRelation.distinct, ("English", PrefixLocation.none),
+            "englishUpper": Subject("englishUpper", Section.english, ("English", PrefixLocation.none),
                     ["AP Language", "AP Literature", "IB Year 1", "IB Year 2"]),
-            "worldHistory": Subject("worldHistory", Section.history, ClassRelation.linear, ("World History", PrefixLocation.after), ["", "AP"]),
-            "usHistory": Subject("usHistory", Section.history, ClassRelation.linear, ("US History", PrefixLocation.after), ["", "AP"]),
-            "spanish": Subject("french", Section.language, ClassRelation.linear, ("French", PrefixLocation.before),
+            "worldHistory": Subject("worldHistory", Section.history, ("World History", PrefixLocation.after), ["", "AP"]),
+            "usHistory": Subject("usHistory", Section.history, ("US History", PrefixLocation.after), ["", "AP"]),
+            "french": Subject("french", Section.language, ("French", PrefixLocation.before),
                     ["1", "2", "3", "AP", "IB 1", "IB 2"]),
-            "french": Subject("spanish", Section.language, ClassRelation.linear, ("Spanish", PrefixLocation.before),
+            "spanish": Subject("spanish", Section.language, ("Spanish", PrefixLocation.before),
                     ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"]),
         ]
     }
 }
 
 enum Section : CaseIterable {
-    case tech, math, science, english, writing, history, language, other
+    case math, science, english, history, language, other
 }
 
 enum ClassRelation : CaseIterable {
@@ -107,14 +112,10 @@ enum PrefixLocation : CaseIterable {
     case before, after, none
 }
 
-enum Grade : Int {
+enum Grade : Int, CaseIterable {
     case invalid = 0
     case freshman = 9
     case sophomore = 10
     case junior = 11
     case senior = 12
-    
-    static func allCases() -> [Grade] {
-        return [invalid, freshman, sophomore, junior, senior]
-    }
 }

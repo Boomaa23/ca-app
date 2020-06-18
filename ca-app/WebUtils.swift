@@ -28,13 +28,13 @@ class Parser {
         do {
             let parsed = try SwiftSoup.parse(raw).body()!
             let sections = try parsed.getElementsByAttributeValue("data-ux", "ContentCards")
-            for section: Element in sections[4...] {
+            for section: Element in sections {
                 let cards = try section.getElementsByAttributeValue("data-ux", "ContentCard")
                 //TODO temporary fix to get around first few sections
                 if cards.count < 4 {
                     continue
                 }
-                for card: Element in cards[4...] {
+                for card: Element in cards {
                     var name: String = try card.getElementsByTag("h4").text()
                     let nameRange: Range<String.Index>? = name.range(of: ". ")
                     if (nameRange != nil) {
@@ -47,7 +47,7 @@ class Parser {
                     text = String(text[text.firstIndex(of: " ")!...])
                     
                     var grade: Grade = Grade.invalid
-                    for grLoop: Grade in Grade.allCases() {
+                    for grLoop: Grade in Grade.allCases {
                         if text.lowercased().contains("\(grLoop)") {
                             grade = grLoop
                             break
@@ -80,27 +80,26 @@ class Parser {
         if endIndex < startIndex {
             startIndex = desc.startIndex
         }
-        var info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: ""))
+        let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "/", with: " ").lowercased())
         for section: Section in Section.allCases {
-            let loopSec = "\(section)".lowercased()
-            if info.lowercased().contains(loopSec) {
+            let loopSec = "\(section)"
+            if info.contains(loopSec) {
                 sectionRtn = section
                 break
             }
-        }
-        if sectionRtn == nil && (info.lowercased().contains("chemistry") || info.lowercased().contains("biology") || info.lowercased().contains("physics")) {
-            sectionRtn = Section.science
-            info = String(info.replacingOccurrences(of: "/", with: " "))
-        }
-        if sectionRtn == nil && (info.lowercased().contains("spanish") || info.lowercased().contains("french")) {
-            sectionRtn = Section.language
         }
         
         let thrFound = info.range(of: "through ");
         if thrFound != nil {
             let thrAft = String(info[thrFound!.upperBound...])
-            for subject: Subject in Subject.getAll().values {
-                if sectionRtn == subject.section {
+            for subject: Subject in Subject.getAllClasses().values {
+                if sectionRtn == nil {
+                    if info.contains(subject.baseName) {
+                        sectionRtn = subject.section
+                    } else {
+                        continue
+                    }
+                } else if sectionRtn == subject.section {
                     for level: String in subject.levels {
                         if thrAft.lowercased().contains(level.lowercased()) {
                             subjRangeRtn.append(SubjectRange(subject: subject, maxLevel: level))
@@ -110,11 +109,17 @@ class Parser {
                 }
             }
         } else {
-            for subject: Subject in Subject.getAll().values {
-                if sectionRtn == subject.section {
+            for subject: Subject in Subject.getAllClasses().values {
+                if sectionRtn == nil {
+                    if info.contains(subject.baseName) {
+                        sectionRtn = subject.section
+                    } else {
+                        continue
+                    }
+                } else if sectionRtn == subject.section {
                     var applLvl = [String]()
                     for level: String in subject.levels {
-                        if info.lowercased().contains(level.lowercased()) {
+                        if info.contains(level.lowercased()) {
                             applLvl.append(level)
                         }
                     }
@@ -125,6 +130,9 @@ class Parser {
             }
         }
         
+        if sectionRtn == nil {
+            return (Section.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [])])
+        }
         return (sectionRtn!, subjRangeRtn)
     }
 }
