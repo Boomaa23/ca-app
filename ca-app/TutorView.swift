@@ -9,25 +9,30 @@
 import SwiftUI
 
 struct TutorView: View {
+    @State var sectionState: [Int: Bool] = [:]
     static let tutors = Parser.getTutors().sorted{$0.self < $1.self}.map{$0.value}
     static let sections = TutorUtils.sortBySection(tutors)
     static let sectionKeys = sections.map{$0.key}
     static let sectionValues = sections.map{$0.value}
     
     var body: some View {
-        ScrollView {
-            VStack {
-                ForEach(TutorView.sectionKeys.indices, id: \.self) { section in
-                    VStack {
-                        Text(TutorView.sectionKeys[section].rawValue)
-                        ForEach(TutorView.sectionValues[section].indices) { tutor in
-                            Text(TutorView.sectionValues[section][tutor].getFullName())
-                        }
+        List {
+            ForEach(TutorView.sectionKeys.indices, id: \.self) { section in
+                Section(header:
+                    Text(StringUtils.toCase(TutorView.sectionKeys[section].rawValue, StringCases.title)).onTapGesture {
+                    self.sectionState[section] = !self.isExpanded(section)
+                }) {
+                    if self.isExpanded(section){
+                        Text(TutorUtils.csvInSection(TutorView.sectionValues[section], section: TutorView.sectionKeys[section]))
                     }
                 }
             }
-            
         }
+        .navigationBarTitle("").navigationBarHidden(true)
+    }
+    
+    func isExpanded(_ section:Int) -> Bool {
+        sectionState[section] ?? false
     }
 }
 

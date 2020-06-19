@@ -76,11 +76,11 @@ struct ClockTimeRange {
         for word: Substring in str.split(separator: " ") {
             var tempTime: ClockTime?
             if Int(word) != nil {
-                tempTime = ClockTime(hours: Int(word)! + (hasPm ? 12 : 0), minutes: 0, seconds: 0)
+                tempTime = ClockTime(hours: Int(word)! + (hasPm && Int(word)! < 12 ? 12 : 0), minutes: 0, seconds: 0)
             } else if word.contains(":") {
                 let cin = word.firstIndex(of: Character(":"))!
-                let hours = Int(word[..<cin])! + (hasPm ? 12 : 0)
-                let minutes = Int(word[word.index(after: cin)...])! / 60
+                let hours = Int(word[..<cin])! + (hasPm && Int(word[..<cin])! < 12 ? 12 : 0)
+                let minutes = Int(word[word.index(after: cin)...])!
                 tempTime = ClockTime(hours: hours, minutes: minutes, seconds: 0)
             }
             if tempTime != nil {
@@ -98,10 +98,6 @@ struct ClockTimeRange {
         
         return nil
     }
-}
-
-enum TimeFormat {
-    case h12, h24
 }
 
 //TODO fix camelCase and Title Case

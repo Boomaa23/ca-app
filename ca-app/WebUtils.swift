@@ -35,10 +35,10 @@ class Parser {
                     continue
                 }
                 for card: Element in cards {
-                    var name: String = try card.getElementsByTag("h4").text()
-                    let nameRange: Range<String.Index>? = name.range(of: ". ")
-                    if (nameRange != nil) {
-                        name = String(name[..<nameRange!.lowerBound])
+                    let nameElem = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()
+                    let name: String
+                    if nameElem != nil {
+                        name = String(try nameElem!.attr("href").replacingOccurrences(of: "/", with: ""))
                     } else {
                         continue
                     }
@@ -54,29 +54,31 @@ class Parser {
                         }
                     }
                     
+                    
+                    
                     let foundClasses = parseDescription(text)
                     if tutors[name] != nil {
                         tutors[name]!.subjects.append(contentsOf: foundClasses.subjRange)
                     } else {
-                        let nameSep = name.firstIndex(of: Character(" "))!
+                        let nameSep = name.firstIndex(of: Character("-"))!
                         tutors[name] = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
                                              grade: grade, subjects: foundClasses.subjRange)
                     }
                 }
             }
         } catch let error {
+            //TODO handle errored connections/refresh ability
             if error.localizedDescription.contains("failed to connect") {
                 return getTutors()
             } else {
                 print(error)
             }
         }
-        print(tutors)
         return tutors
     }
     
-    private static func parseDescription(_ desc: String) -> (section: Section, subjRange: [SubjectRange]) {
-        var sectionRtn: Section?
+    private static func parseDescription(_ desc: String) -> (section: SiteSection, subjRange: [SubjectRange]) {
+        var sectionRtn: SiteSection?
         var subjRangeRtn = [SubjectRange]()
         
         var startIndex = desc.range(of: "with ")?.upperBound ?? desc.startIndex
@@ -85,7 +87,7 @@ class Parser {
             startIndex = desc.startIndex
         }
         let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "/", with: " ").lowercased())
-        for section: Section in Section.allCases {
+        for section: SiteSection in SiteSection.allCases {
             let loopSec = "\(section)"
             if info.contains(loopSec) {
                 sectionRtn = section
@@ -135,7 +137,7 @@ class Parser {
         }
         
         if sectionRtn == nil {
-            return (Section.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [])])
+            return (SiteSection.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [])])
         }
         return (sectionRtn!, subjRangeRtn)
     }
@@ -158,6 +160,10 @@ class Parser {
                 let href = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
                 if (text.lowercased() != day) {
                     sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!, pw: pw, zoom: href))
+                } else if text.contains("every weekday") {
+                    for index in 1...5 {
+                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!, pw: nil, zoom: href))
+                    }
                 }
             }
         } catch let error {

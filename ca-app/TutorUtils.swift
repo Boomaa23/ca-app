@@ -9,7 +9,7 @@
 import Foundation
 
 class TutorUtils {
-    static func csvInSection(_ tutors: [Tutor], section: Section) -> String {
+    static func csvInSection(_ tutors: [Tutor], section: SiteSection) -> String {
         var out: String = ""
         for tutor: Tutor in tutors {
             for (index, subjectRange) in tutor.subjects.enumerated() {
@@ -26,8 +26,8 @@ class TutorUtils {
         return out
     }
     
-    static func sortBySection(_ tutors: [Tutor]) -> [Section: [Tutor]] {
-        var out = [Section: [Tutor]]()
+    static func sortBySection(_ tutors: [Tutor]) -> [SiteSection: [Tutor]] {
+        var out = [SiteSection: [Tutor]]()
         for tutor: Tutor in tutors {
             for subjectRange in tutor.subjects {
                 let index = subjectRange.subject.section

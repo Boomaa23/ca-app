@@ -6,17 +6,81 @@
 //  Copyright © 2020 Charger Academy. All rights reserved.
 //
 
+import Foundation
+import SwiftSoup
 
-struct Tutor : Comparable {
-    private static let counter = Counter()
-    let num: Int = counter.getNext()
+class Tutor : Comparable {
+    private var num: Int?
+    private var zoomUrl: String?
     let firstName: String
     let lastName: String
     let grade: Grade
     var subjects: [SubjectRange]
     
+    init(firstName: String, lastName: String, grade: Grade, subjects: [SubjectRange]) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.grade = grade
+        self.subjects = subjects
+    }
+    
+    func getNum() -> Int {
+        if self.num != nil {
+            return self.num!
+        }
+        do {
+            let iframes = try SwiftSoup.parse(RequestHelper.caGet(relUrl: getRelUrl())).getElementsByTag("iframe")
+            for frame in iframes {
+                let attrText = try frame.attr("srcdoc")
+                let calName = "\(firstName)\(lastName[lastName.startIndex])"
+                if attrText.range(of: calName) != nil {
+                    let upper = attrText.index(before: attrText.index(before: attrText.range(of: calName)!.lowerBound))
+                    let lower = attrText.range(of: "dphstutor")!.upperBound
+                    return Int(String(attrText[lower...upper]))!
+                }
+            }
+        } catch let error {
+            print(error)
+        }
+        return -1
+    }
+    
+    func getZoomUrl() -> String? {
+        if self.zoomUrl != nil {
+            return self.zoomUrl!
+        }
+        do {
+            if self.num == nil {
+                self.num = getNum()
+            } else if num == -1 {
+                return nil
+            }
+            let meta = try SwiftSoup.parse(RequestHelper.get(url: getCalendlyUrl())).getElementsByTag("meta")
+            for href in meta {
+                let link = try href.getElementsByAttributeValue("name", "description")
+                if link.first() == nil {
+                    continue
+                }
+                let fullDesc = try link.first()!.attr("content")
+                if fullDesc.contains("zoom.us") {
+                    let begin = fullDesc.range(of: "https://")!.lowerBound
+                    let end = fullDesc.range(of: "Meeting ID")!.lowerBound
+                    self.zoomUrl = String(fullDesc[begin..<end])
+                    return self.zoomUrl
+                }
+            }
+        } catch let error {
+            print(error)
+        }
+        return nil
+    }
+    
     func getRelUrl() -> String {
-        return firstName.lowercased() + "_" + lastName.lowercased()
+        return firstName.lowercased() + "-" + lastName.lowercased()
+    }
+    
+    func getCalendlyUrl() -> String {
+        return "https://calendly.com/dphstutor\(num!)/\(firstName)\(lastName[lastName.startIndex])"
     }
     
     func getFullName() -> String {
@@ -50,11 +114,11 @@ struct SubjectRange {
 
 struct Subject {
     let baseName: String
-    let section: Section
+    let section: SiteSection
     let prefix: (value: String, loc: PrefixLocation)
     let levels: [String]
     
-    init(_ baseName: String,_ section: Section,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
+    init(_ baseName: String,_ section: SiteSection,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
         self.baseName = baseName
         self.section = section
         self.prefix = prefix
@@ -76,7 +140,7 @@ struct Subject {
         let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art"]
         for other: String in possibleOthers {
             if keyText.contains(other) {
-                return Subject(other, Section.other, ("", PrefixLocation.none), [])
+                return Subject(other, SiteSection.other, ("", PrefixLocation.none), [])
             }
         }
         return nil
@@ -84,33 +148,33 @@ struct Subject {
     
     static func getAllClasses() -> [String: Subject] {
         return [
-            "mathCommon": Subject("mathCommon", Section.math, ("Math", PrefixLocation.before),
+            "mathCommon": Subject("mathCommon", SiteSection.math, ("Math", PrefixLocation.before),
                     ["1 Support", "1", "1+E", "2 Support", "2+E", "2", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus"]),
-            "mathCalculus": Subject("mathCalculus", Section.math, ("Math", PrefixLocation.none),
+            "mathCalculus": Subject("mathCalculus", SiteSection.math, ("Math", PrefixLocation.none),
                     ["SBCC 150", "AP Calculus AB", "SBCC 160"]),
-            "mathOther": Subject("mathOther", Section.math, ("Math", PrefixLocation.none),
+            "mathOther": Subject("mathOther", SiteSection.math, ("Math", PrefixLocation.none),
                     ["SBCC 117", "AP Statistics", "Trigonometry", "IB Math", "Math Modeling"]),
-            "chemistry": Subject("chemistry", Section.science, ("Chemistry", PrefixLocation.after),
+            "chemistry": Subject("chemistry", SiteSection.science, ("Chemistry", PrefixLocation.after),
                     ["", "Honors", "AP"]),
-            "biology": Subject("biology", Section.science, ("Biology", PrefixLocation.none),
+            "biology": Subject("biology", SiteSection.science, ("Biology", PrefixLocation.none),
                     ["Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"]),
-            "physics": Subject("physics", Section.science, ("Physics", PrefixLocation.none),
+            "physics": Subject("physics", SiteSection.science, ("Physics", PrefixLocation.none),
                     ["Conceptual Physics", "Physics", "AP Physics 1", "AP Physics 2"]),
-            "englishLower": Subject("englishLower", Section.english, ("English", PrefixLocation.before),
+            "englishLower": Subject("englishLower", SiteSection.english, ("English", PrefixLocation.before),
                     ["Literacy", "Support", "9", "9H", "10", "10H", "11", "12"]),
-            "englishUpper": Subject("englishUpper", Section.english, ("English", PrefixLocation.none),
+            "englishUpper": Subject("englishUpper", SiteSection.english, ("English", PrefixLocation.none),
                     ["AP Language", "AP Literature", "IB Year 1", "IB Year 2"]),
-            "worldHistory": Subject("worldHistory", Section.history, ("World History", PrefixLocation.after), ["", "AP"]),
-            "usHistory": Subject("usHistory", Section.history, ("US History", PrefixLocation.after), ["", "AP"]),
-            "french": Subject("french", Section.language, ("French", PrefixLocation.before),
+            "worldHistory": Subject("worldHistory", SiteSection.history, ("World History", PrefixLocation.after), ["", "AP"]),
+            "usHistory": Subject("usHistory", SiteSection.history, ("US History", PrefixLocation.after), ["", "AP"]),
+            "french": Subject("french", SiteSection.language, ("French", PrefixLocation.before),
                     ["1", "2", "3", "AP", "IB 1", "IB 2"]),
-            "spanish": Subject("spanish", Section.language, ("Spanish", PrefixLocation.before),
+            "spanish": Subject("spanish", SiteSection.language, ("Spanish", PrefixLocation.before),
                     ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"]),
         ]
     }
 }
 
-enum Section : String, CaseIterable {
+enum SiteSection : String, CaseIterable {
     case math, science, english, history, language, other
 }
 
@@ -134,6 +198,6 @@ struct GroupSession {
     let title: String
     let dayOfWeek: DayOfWeek
     let time: ClockTimeRange
-    let pw: String
+    let pw: String?
     let zoom: String
 }
