@@ -14,7 +14,7 @@ struct TutorView: View {
     
     var body: some View {
         List(Tutor.allTutors, id: \.self) { tutor in
-            Image(uiImage: tutor.getImage())
+            Image(uiImage: RequestHelper.downloadImage(tutor.imageUrl))
                 .resizable().frame(width: TutorView.tutorImgSize, height: TutorView.tutorImgSize, alignment: .center).cornerRadius(TutorView.tutorImgSize / 2).padding(5)
             VStack(alignment: .leading) {
                 Text(tutor.getFullName())

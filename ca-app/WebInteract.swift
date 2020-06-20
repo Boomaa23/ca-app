@@ -5,6 +5,7 @@
 
 import Foundation
 import SwiftSoup
+import UIKit
 
 class RequestHelper {
     static func caGet(relUrl: String) -> String {
@@ -18,6 +19,17 @@ class RequestHelper {
             print(error)
         }
         return String()
+    }
+    
+    static func downloadImage(_ imageUrl: String?) -> UIImage {
+        if imageUrl == nil {
+            return UIImage(named: "logo") ?? UIImage(systemName: "person.fill")!
+        }
+        let data = try? Data(contentsOf: URL(string: imageUrl!)!)
+        if let imageData = data {
+            return UIImage(data: imageData)!
+        }
+        return UIImage(systemName: "person.fill")!
     }
 }
 
@@ -187,11 +199,25 @@ class Parser {
                 let day = try card.getElementsByTag("strong").first()!.text().lowercased()
                 let pw = String(text[text.index(after: text.lastIndex(of: Character(" "))!)...])
                 let href = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
+                
+                let imageElem = try card.getElementsByAttributeValue("data-ux", "ContentCardWrapperImage").first()
+                var imageUrl: String?
+                if imageElem != nil {
+                    let tempImgUrl = try imageElem!.getElementsByTag("img").first()!.attr("src")
+                    if !tempImgUrl.contains("chargerdotacademywithstroke.png") {
+                        imageUrl = "https:\(tempImgUrl)"
+                            .replacingOccurrences(of: "w:365", with: "w:\(TutorView.tutorImgSize)")
+                            .replacingOccurrences(of: "h:365", with: "h:\(TutorView.tutorImgSize)")
+                    }
+                }
+                
                 if (text.lowercased() != day) {
-                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!, pw: pw, zoomUrl: href))
+                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!,
+                                                 pw: pw, zoomUrl: href, imageUrl: imageUrl))
                 } else if text.contains("every weekday") {
                     for index in 1...5 {
-                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!, pw: nil, zoomUrl: href))
+                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!,
+                                                     pw: nil, zoomUrl: href, imageUrl: imageUrl))
                     }
                 }
             }

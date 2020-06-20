@@ -80,17 +80,6 @@ class Tutor : Comparable, Hashable {
         return nil
     }
     
-    func getImage() -> UIImage {
-        if imageUrl == nil {
-            return UIImage(named: "logo")!
-        }
-        let data = try? Data(contentsOf: URL(string: imageUrl!)!)
-        if let imageData = data {
-            return UIImage(data: imageData)!
-        }
-        return UIImage(systemName: "person.fill")!
-    }
-    
     func getRelUrl() -> String {
         return firstName + "-" + lastName
     }
@@ -207,16 +196,19 @@ struct GroupSession : Hashable {
     let time: ClockTimeRange
     let pw: String?
     let zoomUrl: String
+    var imageUrl: String?
     
-    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String) {
+    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String, imageUrl: String?) {
         self.title = title
         self.dayOfWeek = dayOfWeek
         self.time = time
         self.pw = pw
         self.zoomUrl = zoomUrl
+        self.imageUrl = imageUrl
         GroupSession.allSessions.append(self)
     }
     
+    //TODO implement
     func zoomHref() -> NSMutableAttributedString {
         let href = NSMutableAttributedString(string: self.zoomUrl)
         href.addAttribute(.link, value: self.zoomUrl, range: NSString(string: self.zoomUrl).range(of: self.zoomUrl))
