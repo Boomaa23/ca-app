@@ -1,27 +1,18 @@
 //
-//  MathUtils.swift
+//  TimeUtils.swift
 //  ca-app
 //
-//  Created by Nikhil on 6/18/20.
+//  Created by Nikhil on 6/20/20.
 //  Copyright © 2020 Charger Academy. All rights reserved.
 //
 
 import Foundation
 
-class Counter {
-    private var incrementer: Int = 0
-    
-    func getNext() -> Int {
-        incrementer += 1
-        return incrementer
-    }
-}
-
 enum DayOfWeek : String, CaseIterable, Equatable {
     case sunday, monday, tuesday, wednesday, thursday, friday, saturday
     
     static func == (lhs: DayOfWeek, rhs: DayOfWeek) -> Bool {
-        return DayOfWeek.allCases.firstIndex(of: lhs) == DayOfWeek.allCases.firstIndex(of: rhs)
+        return lhs.rawValue == rhs.rawValue
     }
     
     static func fromString(_ value: String) -> DayOfWeek? {
@@ -39,12 +30,14 @@ struct ClockTime : Comparable {
     let minutes: Int
     let seconds: Int
     
-    func toString(_ militaryTime: Bool) -> String {
+    func toString(_ militaryTime: Bool,_ excludeSeconds: Bool) -> String {
         if militaryTime {
-            return "\(hours):\(minutes):\(seconds)"
+            return "\(hours):\(minutes)" + (!excludeSeconds ? ":\(seconds)" : "")
         } else {
-            let timeHalf = hours / 12 > 1 ? "PM" : "AM"
-            return "\(hours % 12):\(minutes):\(seconds) \(timeHalf)"
+            return "\(hours <= 12 ? hours : hours - 12)" + ":"
+                + "\(minutes)".toPadded(2, Character("0"))
+                + (!excludeSeconds ? ":\(seconds)".toPadded(2, Character("0")) : "")
+                + (hours < 12 ? " AM" : " PM")
         }
     }
     
@@ -57,7 +50,7 @@ struct ClockTime : Comparable {
     }
 }
 
-struct ClockTimeRange {
+struct ClockTimeRange : Equatable {
     let start: ClockTime
     let end: ClockTime
     let duration: Int
@@ -66,6 +59,10 @@ struct ClockTimeRange {
         self.start = start
         self.end = end
         self.duration = end.valueInSeconds() - start.valueInSeconds()
+    }
+    
+    func toString(_ militaryTime: Bool,_ excludeSeconds: Bool) -> String {
+        return "\(start.toString(militaryTime, excludeSeconds)) - \(end.toString(militaryTime, excludeSeconds))"
     }
     
     static func fromString(_ str: String) -> ClockTimeRange? {
@@ -98,29 +95,4 @@ struct ClockTimeRange {
         
         return nil
     }
-}
-
-//TODO fix camelCase and Title Case
-class StringUtils {
-    static func toCase(_ str: String,_ strCase: StringCases) -> String {
-        switch strCase {
-            case .camel:
-            return ":"
-            case .lower:
-                return str.lowercased()
-            case .upper:
-                return str.uppercased()
-            case .title:
-                for splitStr: Substring in str.split(separator: " ") {
-                    var splitStr: String = String(splitStr)
-                    let range = ...splitStr.index(after: str.startIndex)
-                    splitStr.replaceSubrange(range, with: splitStr[range].uppercased())
-                }
-        }
-        return str
-    }
-}
-
-enum StringCases {
-    case camel, upper, lower, title
 }

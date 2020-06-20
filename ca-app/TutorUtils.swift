@@ -9,6 +9,17 @@
 import Foundation
 
 class TutorUtils {
+    static func subjAsCsv(_ tutor: Tutor) -> String {
+        var outStr: String = ""
+        for (index, subjectRange) in tutor.subjects.enumerated() {
+            for (levelIndex, level) in subjectRange.applicableLevels.enumerated() {
+                outStr += subjectRange.subject.withPrefix(level) + (subjectRange.applicableLevels.count - 1 != levelIndex ? ", " : "")
+            }
+            outStr +=  (tutor.subjects.count - 1 != index ? "\n" : "")
+        }
+        return outStr
+    }
+    
     static func csvInSection(_ tutors: [Tutor], section: SiteSection) -> String {
         var out: String = ""
         for tutor: Tutor in tutors {

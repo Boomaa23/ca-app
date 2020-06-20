@@ -22,9 +22,11 @@ class RequestHelper {
 }
 
 class Parser {
-    static func getTutors() -> [String: Tutor] {
+    static func initTutors() -> [Tutor] {
+        if Tutor.allTutors.count != 0 {
+            return Tutor.allTutors
+        }
         let raw: String = RequestHelper.caGet(relUrl: "tutors")
-        var tutors = [String: Tutor]()
         do {
             let parsed = try SwiftSoup.parse(raw).body()!
             let sections = try parsed.getElementsByAttributeValue("data-ux", "ContentCards")
@@ -43,6 +45,17 @@ class Parser {
                         continue
                     }
                     
+                    let imageElem = try card.getElementsByAttributeValue("data-ux", "ContentCardWrapperImage").first()
+                    var imageUrl: String?
+                    if imageElem != nil {
+                        let tempImgUrl = try imageElem!.getElementsByTag("img").first()!.attr("src")
+                        if !tempImgUrl.contains("chargerdotacademywithstroke.png") {
+                            imageUrl = "https:\(tempImgUrl)"
+                                .replacingOccurrences(of: "w:365", with: "w:\(TutorView.tutorImgSize)")
+                                .replacingOccurrences(of: "h:365", with: "h:\(TutorView.tutorImgSize)")
+                        }
+                    }
+                    
                     var text: String = try card.getElementsByTag("span").text()
                     text = String(text[text.firstIndex(of: " ")!...])
                     
@@ -54,27 +67,26 @@ class Parser {
                         }
                     }
                     
-                    
-                    
                     let foundClasses = parseDescription(text)
-                    if tutors[name] != nil {
-                        tutors[name]!.subjects.append(contentsOf: foundClasses.subjRange)
+                    let ioName = Tutor.indexByName(name)
+                    if ioName != nil {
+                        Tutor.allTutors[ioName!].subjects.append(contentsOf: foundClasses.subjRange)
                     } else {
                         let nameSep = name.firstIndex(of: Character("-"))!
-                        tutors[name] = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
-                                             grade: grade, subjects: foundClasses.subjRange)
+                        _ = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
+                              grade: grade, subjects: foundClasses.subjRange, imageUrl: imageUrl)
                     }
                 }
             }
         } catch let error {
             //TODO handle errored connections/refresh ability
             if error.localizedDescription.contains("failed to connect") {
-                return getTutors()
+                return initTutors()
             } else {
                 print(error)
             }
         }
-        return tutors
+        return Tutor.allTutors
     }
     
     private static func parseDescription(_ desc: String) -> (section: SiteSection, subjRange: [SubjectRange]) {
@@ -86,7 +98,7 @@ class Parser {
         if endIndex < startIndex {
             startIndex = desc.startIndex
         }
-        let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "/", with: " ").lowercased())
+        var info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: " ").lowercased())
         for section: SiteSection in SiteSection.allCases {
             let loopSec = "\(section)"
             if info.contains(loopSec) {
@@ -98,16 +110,30 @@ class Parser {
         let thrFound = info.range(of: "through ");
         if thrFound != nil {
             let thrAft = String(info[thrFound!.upperBound...])
-            for subject: Subject in Subject.getAllClasses().values {
+            for subject: Subject in Subject.allClasses.values {
                 if sectionRtn == nil {
                     if info.contains(subject.baseName) {
                         sectionRtn = subject.section
                     } else {
                         continue
                     }
-                } else if sectionRtn == subject.section {
+                }
+                if sectionRtn == subject.section {
+                    if sectionRtn == SiteSection.science {
+                        info = info.replacingOccurrences(of: "/", with: " ")
+                    }
                     for level: String in subject.levels {
                         if thrAft.lowercased().contains(level.lowercased()) {
+                            if level.count == 1 && thrAft.endIndex != thrAft.firstIndex(of: Character(level)) {
+                                let aftChar = thrAft[thrAft.index(thrAft.firstIndex(of: Character(level))!, offsetBy: 1)]
+                                if aftChar != Character(" ") && aftChar != Character(",") && aftChar != Character(".") {
+                                    continue
+                                }
+                            }
+                            //TODO figure out a parsing system that avoids level conflicts like this
+                            if thrAft == "3/pre-calculus " && level == "Pre-Calculus" {
+                                continue
+                            }
                             subjRangeRtn.append(SubjectRange(subject: subject, maxLevel: level))
                             break
                         }
@@ -115,7 +141,7 @@ class Parser {
                 }
             }
         } else {
-            for subject: Subject in Subject.getAllClasses().values {
+            for subject: Subject in Subject.allClasses.values {
                 if sectionRtn == nil {
                     if info.contains(subject.baseName) {
                         sectionRtn = subject.section
@@ -137,12 +163,15 @@ class Parser {
         }
         
         if sectionRtn == nil {
-            return (SiteSection.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [])])
+            return (SiteSection.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""])])
         }
         return (sectionRtn!, subjRangeRtn)
     }
     
-    static func getGroupSessions() -> [GroupSession] {
+    static func initGroupSessions() -> [GroupSession] {
+        if GroupSession.allSessions.count != 0 {
+            return GroupSession.allSessions
+        }
         var sessions = [GroupSession]()
         let pageText = RequestHelper.caGet(relUrl: "group-tutoring")
         do {
@@ -159,10 +188,10 @@ class Parser {
                 let pw = String(text[text.index(after: text.lastIndex(of: Character(" "))!)...])
                 let href = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
                 if (text.lowercased() != day) {
-                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!, pw: pw, zoom: href))
+                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!, pw: pw, zoomUrl: href))
                 } else if text.contains("every weekday") {
                     for index in 1...5 {
-                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!, pw: nil, zoom: href))
+                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!, pw: nil, zoomUrl: href))
                     }
                 }
             }
@@ -172,4 +201,3 @@ class Parser {
         return sessions
     }
 }
-

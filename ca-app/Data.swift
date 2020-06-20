@@ -7,26 +7,32 @@
 //
 
 import Foundation
+import UIKit
 import SwiftSoup
 
-class Tutor : Comparable {
-    private var num: Int?
-    private var zoomUrl: String?
+class Tutor : Comparable, Hashable {
+    static var allTutors = [Tutor]()
     let firstName: String
     let lastName: String
     let grade: Grade
     var subjects: [SubjectRange]
+    var imageUrl: String?
+    private var num: Int?
+    private var zoomUrl: String?
     
-    init(firstName: String, lastName: String, grade: Grade, subjects: [SubjectRange]) {
-        self.firstName = firstName
-        self.lastName = lastName
+    
+    init(firstName: String, lastName: String, grade: Grade, subjects: [SubjectRange], imageUrl: String?) {
+        self.firstName = firstName.replacingOccurrences(of: " ", with: "").lowercased()
+        self.lastName = lastName.replacingOccurrences(of: " ", with: "").lowercased()
         self.grade = grade
         self.subjects = subjects
+        self.imageUrl = imageUrl
+        Tutor.allTutors.append(self)
     }
     
-    func getNum() -> Int {
+    func getNum() -> Int? {
         if self.num != nil {
-            return self.num!
+            return self.num
         }
         do {
             let iframes = try SwiftSoup.parse(RequestHelper.caGet(relUrl: getRelUrl())).getElementsByTag("iframe")
@@ -36,25 +42,24 @@ class Tutor : Comparable {
                 if attrText.range(of: calName) != nil {
                     let upper = attrText.index(before: attrText.index(before: attrText.range(of: calName)!.lowerBound))
                     let lower = attrText.range(of: "dphstutor")!.upperBound
-                    return Int(String(attrText[lower...upper]))!
+                    self.num = Int(String(attrText[lower...upper]))!
+                    return self.num
                 }
             }
         } catch let error {
             print(error)
         }
-        return -1
+        return nil
     }
     
     func getZoomUrl() -> String? {
+        if self.num == nil {
+            return nil
+        }
         if self.zoomUrl != nil {
-            return self.zoomUrl!
+            return self.zoomUrl
         }
         do {
-            if self.num == nil {
-                self.num = getNum()
-            } else if num == -1 {
-                return nil
-            }
             let meta = try SwiftSoup.parse(RequestHelper.get(url: getCalendlyUrl())).getElementsByTag("meta")
             for href in meta {
                 let link = try href.getElementsByAttributeValue("name", "description")
@@ -75,8 +80,19 @@ class Tutor : Comparable {
         return nil
     }
     
+    func getImage() -> UIImage {
+        if imageUrl == nil {
+            return UIImage(named: "logo")!
+        }
+        let data = try? Data(contentsOf: URL(string: imageUrl!)!)
+        if let imageData = data {
+            return UIImage(data: imageData)!
+        }
+        return UIImage(systemName: "person.fill")!
+    }
+    
     func getRelUrl() -> String {
-        return firstName.lowercased() + "-" + lastName.lowercased()
+        return firstName + "-" + lastName
     }
     
     func getCalendlyUrl() -> String {
@@ -84,7 +100,22 @@ class Tutor : Comparable {
     }
     
     func getFullName() -> String {
-        return firstName + " " + lastName
+        return firstName.toCase(String.Case.title) + " " + lastName.toCase(String.Case.title)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(num)
+        hasher.combine(firstName)
+        hasher.combine(lastName)
+    }
+    
+    static func indexByName(_ name: String) -> Int? {
+        for (index, tutor) in allTutors.enumerated() {
+            if tutor.getRelUrl() == name {
+                return index
+            }
+        }
+        return nil
     }
     
     static func < (lhs: Tutor, rhs: Tutor) -> Bool {
@@ -113,6 +144,7 @@ struct SubjectRange {
 }
 
 struct Subject {
+    static var allClasses: [String: Subject] = [:]
     let baseName: String
     let section: SiteSection
     let prefix: (value: String, loc: PrefixLocation)
@@ -123,6 +155,7 @@ struct Subject {
         self.section = section
         self.prefix = prefix
         self.levels = levels
+        Subject.allClasses[baseName] = self
     }
     
     func withPrefix(_ level: String) -> String {
@@ -137,40 +170,13 @@ struct Subject {
     }
     
     static func fromOther(_ keyText: String) -> Subject? {
-        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art"]
+        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "english"]
         for other: String in possibleOthers {
             if keyText.contains(other) {
-                return Subject(other, SiteSection.other, ("", PrefixLocation.none), [])
+                return Subject(other, SiteSection.other, (other.toCase(String.Case.title), PrefixLocation.before), [""])
             }
         }
         return nil
-    }
-    
-    static func getAllClasses() -> [String: Subject] {
-        return [
-            "mathCommon": Subject("mathCommon", SiteSection.math, ("Math", PrefixLocation.before),
-                    ["1 Support", "1", "1+E", "2 Support", "2+E", "2", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus"]),
-            "mathCalculus": Subject("mathCalculus", SiteSection.math, ("Math", PrefixLocation.none),
-                    ["SBCC 150", "AP Calculus AB", "SBCC 160"]),
-            "mathOther": Subject("mathOther", SiteSection.math, ("Math", PrefixLocation.none),
-                    ["SBCC 117", "AP Statistics", "Trigonometry", "IB Math", "Math Modeling"]),
-            "chemistry": Subject("chemistry", SiteSection.science, ("Chemistry", PrefixLocation.after),
-                    ["", "Honors", "AP"]),
-            "biology": Subject("biology", SiteSection.science, ("Biology", PrefixLocation.none),
-                    ["Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"]),
-            "physics": Subject("physics", SiteSection.science, ("Physics", PrefixLocation.none),
-                    ["Conceptual Physics", "Physics", "AP Physics 1", "AP Physics 2"]),
-            "englishLower": Subject("englishLower", SiteSection.english, ("English", PrefixLocation.before),
-                    ["Literacy", "Support", "9", "9H", "10", "10H", "11", "12"]),
-            "englishUpper": Subject("englishUpper", SiteSection.english, ("English", PrefixLocation.none),
-                    ["AP Language", "AP Literature", "IB Year 1", "IB Year 2"]),
-            "worldHistory": Subject("worldHistory", SiteSection.history, ("World History", PrefixLocation.after), ["", "AP"]),
-            "usHistory": Subject("usHistory", SiteSection.history, ("US History", PrefixLocation.after), ["", "AP"]),
-            "french": Subject("french", SiteSection.language, ("French", PrefixLocation.before),
-                    ["1", "2", "3", "AP", "IB 1", "IB 2"]),
-            "spanish": Subject("spanish", SiteSection.language, ("Spanish", PrefixLocation.before),
-                    ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"]),
-        ]
     }
 }
 
@@ -194,10 +200,37 @@ enum Grade : Int, CaseIterable {
     case senior = 12
 }
 
-struct GroupSession {
+struct GroupSession : Hashable {
+    static var allSessions = [GroupSession]()
     let title: String
     let dayOfWeek: DayOfWeek
     let time: ClockTimeRange
     let pw: String?
-    let zoom: String
+    let zoomUrl: String
+    
+    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String) {
+        self.title = title
+        self.dayOfWeek = dayOfWeek
+        self.time = time
+        self.pw = pw
+        self.zoomUrl = zoomUrl
+        GroupSession.allSessions.append(self)
+    }
+    
+    func zoomHref() -> NSMutableAttributedString {
+        let href = NSMutableAttributedString(string: self.zoomUrl)
+        href.addAttribute(.link, value: self.zoomUrl, range: NSString(string: self.zoomUrl).range(of: self.zoomUrl))
+        return href
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(title)
+        hasher.combine(dayOfWeek)
+    }
+    
+    static func == (lhs: GroupSession, rhs: GroupSession) -> Bool {
+        return lhs.title == rhs.title
+            && lhs.dayOfWeek == rhs.dayOfWeek
+            && lhs.time == rhs.time
+    }
 }

@@ -10,25 +10,18 @@ import SwiftUI
 
 struct TutorView: View {
     @State var sectionState: [Int: Bool] = [:]
-    static let tutors = Parser.getTutors().sorted{$0.self < $1.self}.map{$0.value}
-    static let sections = TutorUtils.sortBySection(tutors)
-    static let sectionKeys = sections.map{$0.key}
-    static let sectionValues = sections.map{$0.value}
+    static let tutorImgSize: CGFloat = 60
     
     var body: some View {
-        List {
-            ForEach(TutorView.sectionKeys.indices, id: \.self) { section in
-                Section(header:
-                    Text(StringUtils.toCase(TutorView.sectionKeys[section].rawValue, StringCases.title)).onTapGesture {
-                    self.sectionState[section] = !self.isExpanded(section)
-                }) {
-                    if self.isExpanded(section){
-                        Text(TutorUtils.csvInSection(TutorView.sectionValues[section], section: TutorView.sectionKeys[section]))
-                    }
-                }
+        List(Tutor.allTutors, id: \.self) { tutor in
+            Image(uiImage: tutor.getImage())
+                .resizable().frame(width: TutorView.tutorImgSize, height: TutorView.tutorImgSize, alignment: .center).cornerRadius(TutorView.tutorImgSize / 2).padding(5)
+            VStack(alignment: .leading) {
+                Text(tutor.getFullName())
+                Text(TutorUtils.subjAsCsv(tutor))
+                    .foregroundColor(.gray)
             }
         }
-        .navigationBarTitle("").navigationBarHidden(true)
     }
     
     func isExpanded(_ section:Int) -> Bool {

@@ -11,13 +11,37 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-
-
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    // Override point for customization after application launch.
-    return true
+        // Initialize all subjects after application launch
+        _ = Subject("mathCommon", SiteSection.math, ("Math", PrefixLocation.before),
+                    ["1 Support", "1", "1+E", "2 Support", "2", "2+E", "3", "2/3 Compaction", "Pre-Calculus", "3/Pre-Calculus", "AP Calculus AB", "150/160"])
+        _ = Subject("mathOther", SiteSection.math, ("Math", PrefixLocation.none),
+                    ["MATH 117", "AP Statistics", "Trigonometry", "IB Math", "Math Modeling"])
+        _ = Subject("chemistry", SiteSection.science, ("Chemistry", PrefixLocation.after),
+                    ["", "Honors", "AP"])
+        _ = Subject("biology", SiteSection.science, ("Biology", PrefixLocation.none),
+                    ["Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"])
+        _ = Subject("physics", SiteSection.science, ("Physics", PrefixLocation.none),
+                    ["Conceptual Physics", "Physics", "AP Physics 1", "AP Physics 2"])
+        _ = Subject("englishLower", SiteSection.english, ("English", PrefixLocation.before),
+                    ["Literacy", "Support", "9", "9H", "10", "10H", "11", "12"])
+        _ = Subject("englishUpper", SiteSection.english, ("English", PrefixLocation.none),
+                    ["AP Language", "AP Literature", "IB Year 1", "IB Year 2"])
+        _ = Subject("worldHistory", SiteSection.history, ("World History", PrefixLocation.after), ["", "AP"])
+        _ = Subject("usHistory", SiteSection.history, ("US History", PrefixLocation.after), ["", "AP"])
+        _ = Subject("french", SiteSection.language, ("French", PrefixLocation.before),
+                    ["1", "2", "3", "AP", "IB 1", "IB 2"])
+        _ = Subject("spanish", SiteSection.language, ("Spanish", PrefixLocation.before),
+                    ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"])
+        
+        //Populate data from web before application launch
+        while Tutor.allTutors.count == 0 {
+            _ = Parser.initTutors()
+        }
+        while GroupSession.allSessions.count == 0 {
+            _ = Parser.initGroupSessions()
+        }
+        return true
     }
 
 
