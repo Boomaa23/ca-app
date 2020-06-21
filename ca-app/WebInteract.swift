@@ -21,16 +21,6 @@ class RequestHelper {
         return String()
     }
     
-    static func downloadImage(_ imageUrl: String?) -> UIImage {
-        if imageUrl == nil {
-            return UIImage(named: "logo") ?? UIImage(systemName: "person.fill")!
-        }
-        let data = try? Data(contentsOf: URL(string: imageUrl!)!)
-        if let imageData = data {
-            return UIImage(data: imageData)!
-        }
-        return UIImage(systemName: "person.fill")!
-    }
 }
 
 class Parser {
@@ -58,13 +48,11 @@ class Parser {
                     }
                     
                     let imageElem = try card.getElementsByAttributeValue("data-ux", "ContentCardWrapperImage").first()
-                    var imageUrl: String?
+                    var imageUrl: WSImgUrl?
                     if imageElem != nil {
                         let tempImgUrl = try imageElem!.getElementsByTag("img").first()!.attr("src")
                         if !tempImgUrl.contains("chargerdotacademywithstroke.png") {
-                            imageUrl = "https:\(tempImgUrl)"
-                                .replacingOccurrences(of: "w:365", with: "w:\(TutorView.tutorImgSize)")
-                                .replacingOccurrences(of: "h:365", with: "h:\(TutorView.tutorImgSize)")
+                            imageUrl = WSImgUrl(base: "https:\(tempImgUrl)")
                         }
                     }
                     
@@ -86,7 +74,7 @@ class Parser {
                     } else {
                         let nameSep = name.firstIndex(of: Character("-"))!
                         _ = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
-                              grade: grade, subjects: foundClasses.subjRange, imageUrl: imageUrl)
+                                  grade: grade, subjects: foundClasses.subjRange, imageUrl: imageUrl)
                     }
                 }
             }
@@ -201,13 +189,11 @@ class Parser {
                 let href = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
                 
                 let imageElem = try card.getElementsByAttributeValue("data-ux", "ContentCardWrapperImage").first()
-                var imageUrl: String?
+                var imageUrl: WSImgUrl?
                 if imageElem != nil {
                     let tempImgUrl = try imageElem!.getElementsByTag("img").first()!.attr("src")
                     if !tempImgUrl.contains("chargerdotacademywithstroke.png") {
-                        imageUrl = "https:\(tempImgUrl)"
-                            .replacingOccurrences(of: "w:365", with: "w:\(TutorView.tutorImgSize)")
-                            .replacingOccurrences(of: "h:365", with: "h:\(TutorView.tutorImgSize)")
+                        imageUrl = WSImgUrl(base: "https:\(tempImgUrl)")
                     }
                 }
                 

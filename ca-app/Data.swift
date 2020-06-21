@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import SwiftSoup
+import SwiftUI
 
 class Tutor : Comparable, Hashable {
     static var allTutors = [Tutor]()
@@ -16,17 +17,17 @@ class Tutor : Comparable, Hashable {
     let lastName: String
     let grade: Grade
     var subjects: [SubjectRange]
-    var imageUrl: String?
+    var imageUrl: WSImgUrl
     private var num: Int?
     private var zoomUrl: String?
     
     
-    init(firstName: String, lastName: String, grade: Grade, subjects: [SubjectRange], imageUrl: String?) {
+    init(firstName: String, lastName: String, grade: Grade, subjects: [SubjectRange], imageUrl: WSImgUrl?) {
         self.firstName = firstName.replacingOccurrences(of: " ", with: "").lowercased()
         self.lastName = lastName.replacingOccurrences(of: " ", with: "").lowercased()
         self.grade = grade
         self.subjects = subjects
-        self.imageUrl = imageUrl
+        self.imageUrl = imageUrl ?? WSImgUrl(base: nil)
         Tutor.allTutors.append(self)
     }
     
@@ -53,14 +54,14 @@ class Tutor : Comparable, Hashable {
     }
     
     func getZoomUrl() -> String? {
-        if self.num == nil {
-            return nil
-        }
         if self.zoomUrl != nil {
             return self.zoomUrl
         }
+        if self.num == nil && self.getNum() == nil {
+            return nil
+        }
         do {
-            let meta = try SwiftSoup.parse(RequestHelper.get(url: getCalendlyUrl())).getElementsByTag("meta")
+            let meta = try SwiftSoup.parse(RequestHelper.get(url: getCalendlyUrl().toNonNil())).getElementsByTag("meta")
             for href in meta {
                 let link = try href.getElementsByAttributeValue("name", "description")
                 if link.first() == nil {
@@ -84,7 +85,13 @@ class Tutor : Comparable, Hashable {
         return firstName + "-" + lastName
     }
     
-    func getCalendlyUrl() -> String {
+    func getCalendlyUrl() -> String? {
+        if num == nil {
+            _ = getNum()
+        }
+        if num == nil {
+            return nil
+        }
         return "https://calendly.com/dphstutor\(num!)/\(firstName)\(lastName[lastName.startIndex])"
     }
     
@@ -93,9 +100,9 @@ class Tutor : Comparable, Hashable {
     }
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(num)
         hasher.combine(firstName)
         hasher.combine(lastName)
+        hasher.combine(grade)
     }
     
     static func indexByName(_ name: String) -> Int? {
@@ -169,19 +176,19 @@ struct Subject {
     }
 }
 
-enum SiteSection : String, CaseIterable {
+enum SiteSection: String, CaseIterable {
     case math, science, english, history, language, other
 }
 
-enum ClassRelation : CaseIterable {
+enum ClassRelation: CaseIterable {
     case linear, distinct
 }
 
-enum PrefixLocation : CaseIterable {
+enum PrefixLocation: CaseIterable {
     case before, after, none
 }
 
-enum Grade : Int, CaseIterable {
+enum Grade: Int, CaseIterable {
     case invalid = 0
     case freshman = 9
     case sophomore = 10
@@ -189,30 +196,23 @@ enum Grade : Int, CaseIterable {
     case senior = 12
 }
 
-struct GroupSession : Hashable {
+struct GroupSession: Hashable {
     static var allSessions = [GroupSession]()
     let title: String
     let dayOfWeek: DayOfWeek
     let time: ClockTimeRange
     let pw: String?
     let zoomUrl: String
-    var imageUrl: String?
+    var imageUrl: WSImgUrl
     
-    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String, imageUrl: String?) {
+    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String, imageUrl: WSImgUrl?) {
         self.title = title
         self.dayOfWeek = dayOfWeek
         self.time = time
         self.pw = pw
         self.zoomUrl = zoomUrl
-        self.imageUrl = imageUrl
+        self.imageUrl = imageUrl ?? WSImgUrl(base: nil)
         GroupSession.allSessions.append(self)
-    }
-    
-    //TODO implement
-    func zoomHref() -> NSMutableAttributedString {
-        let href = NSMutableAttributedString(string: self.zoomUrl)
-        href.addAttribute(.link, value: self.zoomUrl, range: NSString(string: self.zoomUrl).range(of: self.zoomUrl))
-        return href
     }
     
     func hash(into hasher: inout Hasher) {
@@ -224,5 +224,42 @@ struct GroupSession : Hashable {
         return lhs.title == rhs.title
             && lhs.dayOfWeek == rhs.dayOfWeek
             && lhs.time == rhs.time
+    }
+}
+
+class WSImgUrl {
+    static let siteDefaultSize = (width: "365", height: "365")
+    let base: String?
+    private var storedImg: UIImage?
+    
+    init(base: String?, resizeSingle: Bool = true) {
+        self.base = base
+        if resizeSingle {
+            self.storedImg = download(WSImgUrl.siteDefaultSize.width, WSImgUrl.siteDefaultSize.height)
+        }
+    }
+    
+    func toSized(_ width: String,_ height: String) -> String? {
+        return self.base?
+            .replacingOccurrences(of: "w:\(WSImgUrl.siteDefaultSize.width)", with: "w:\(width)")
+            .replacingOccurrences(of: "h:\(WSImgUrl.siteDefaultSize.height)", with: "h:\(height)")
+    }
+    
+    func download(_ width: String,_ height: String) -> UIImage {
+        if self.storedImg != nil {
+            return self.storedImg!
+        }
+        if self.base != nil, let sizedUrl = toSized(width, height) {
+            let data = try? Data(contentsOf: URL(string: sizedUrl)!)
+            if let imageData = data {
+                self.storedImg = UIImage(data: imageData)!
+                return self.storedImg!
+            }
+        }
+        return (UIImage(named: "logo") ?? UIImage(systemName: "person.fill"))!
+    }
+    
+    func downloadSquare(_ dimension: String = "\(TutorView.tutorImgSize)") -> UIImage {
+        return download(dimension, dimension)
     }
 }

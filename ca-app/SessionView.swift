@@ -12,17 +12,20 @@ struct SessionView: View {
     var body: some View {
         List(GroupSession.allSessions, id: \.self) { session in
             HStack {
-                Image(uiImage: RequestHelper.downloadImage(session.imageUrl))
-                    .resizable().frame(width: TutorView.tutorImgSize, height: TutorView.tutorImgSize, alignment: .center)
+                Image(uiImage: session.imageUrl.downloadSquare())
+                    .toSquareSize(TutorView.tutorImgSize)
                     .cornerRadius(TutorView.tutorImgSize / 2)
+                    .padding(10)
                 VStack(alignment: .leading) {
                     Text(session.title).bold()
                     Text(session.dayOfWeek.rawValue.toCase(String.Case.title))
                     Text(session.time.toString(false, true))
                     Text("Password: " + (session.pw ?? "None"))
-                    Text(session.zoomUrl).foregroundColor(.blue).onTapGesture {
-                        UIApplication.shared.open(URL(string: session.zoomUrl)!)
+                    HStack {
+                        Text("Zoom Link: ")
+                        Text.createLink(session.zoomUrl)
                     }
+                    SBUnifiedWarning(text: session.zoomUrl)
                 }
             }
         }

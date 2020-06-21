@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 import SwiftUI
 
 extension String {
@@ -53,11 +54,26 @@ extension String {
     }
 }
 
-//TODO implement
-extension UITextView {
-    func attributeText(_ text: NSMutableAttributedString) -> UITextView {
-        self.attributedText = text
-        return self
+extension Optional where Wrapped == String {
+    func toNonNil(_ value: String = "N/A") -> String {
+        return self ?? value
     }
 }
 
+extension Image {
+    func toSquareSize(_ size: CGFloat) -> some View {
+        return self.resizable().frame(width: size, height: size, alignment: .center)
+    }
+}
+
+extension Text {
+    func toLink(_ url: String,_ color: Color = .blue) -> some View {
+        return Text.createLink(url, color, self)
+    }
+    
+    static func createLink(_ url: String,_ color: Color = .blue,_ obj: Text? = nil) -> some View {
+        return (obj ?? Text(url)).foregroundColor(color).onTapGesture {
+            UIApplication.shared.open(URL(string: url)!)
+        }
+    }
+}
