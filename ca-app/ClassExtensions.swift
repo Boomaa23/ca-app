@@ -11,6 +11,10 @@ import UIKit
 import SwiftUI
 
 extension String {
+    func capsAP() -> String {
+        return self.replacingOccurrences(of: "ap", with: "AP").replacingOccurrences(of: "Ap", with: "AP")
+    }
+    
     func toPadded(_ num: Int,_ char: Character) -> String {
         let diff = num - self.count
         if diff <= 0 {

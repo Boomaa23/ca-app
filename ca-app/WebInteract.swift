@@ -109,7 +109,7 @@ class Parser {
         
         let thrFound = info.range(of: "through ");
         if thrFound != nil {
-            let thrAft = String(info[thrFound!.upperBound...])
+            var thrAft = String(info[thrFound!.upperBound...])
             for subject: Subject in Subject.allClasses.values {
                 if sectionRtn == nil {
                     if info.contains(subject.baseName) {
@@ -119,8 +119,10 @@ class Parser {
                     }
                 }
                 if sectionRtn == subject.section {
+                    //TODO figure out a parsing system that avoids level conflicts like this
                     if sectionRtn == SiteSection.science {
-                        info = info.replacingOccurrences(of: "/", with: " ")
+                        info = info.replacingOccurrences(of: "honors/ap chemistry", with: "honors chemistry ap chemistry")
+                            .replacingOccurrences(of: "ap/honors chemistry", with: "honors chemistry ap chemistry")
                     }
                     for level: String in subject.levels {
                         if thrAft.lowercased().contains(level.lowercased()) {
@@ -134,6 +136,7 @@ class Parser {
                             if thrAft == "3/pre-calculus " && level == "Pre-Calculus" {
                                 continue
                             }
+                            thrAft = thrAft.replacingCharacters(in: level.lowercased().range(of: level.lowercased())!, with: "")
                             subjRangeRtn.append(SubjectRange(subject: subject, maxLevel: level))
                             break
                         }
@@ -149,9 +152,21 @@ class Parser {
                         continue
                     }
                 } else if sectionRtn == subject.section {
+                    //TODO figure out a parsing system that avoids level conflicts like this
+                    if sectionRtn == SiteSection.science {
+                        info = info.replacingOccurrences(of: "honors/ap chemistry", with: "honors chemistry ap chemistry")
+                            .replacingOccurrences(of: "ap/honors chemistry", with: "honors chemistry ap chemistry")
+                    }
                     var applLvl = [String]()
                     for level: String in subject.levels {
                         if info.contains(level.lowercased()) {
+                            //TODO figure out a parsing system that avoids level conflicts like this
+                            if sectionRtn == SiteSection.science && info.contains("ap environmental science")
+                                && subject.withPrefix(level).lowercased() == "ap chemistry" && !info.contains("ap chemistry") {
+                                subjRangeRtn.append(SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""]))
+                                continue
+                            }
+//                            info = info.replacingCharacters(in: level.lowercased().range(of: level.lowercased())!, with: "")
                             applLvl.append(level)
                         }
                     }

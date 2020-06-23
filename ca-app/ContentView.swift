@@ -56,6 +56,15 @@ struct ContentView: View {
                         }
                     }
                     .tag(3)
+            TutorResourcesView()
+                .font(.title)
+                .tabItem {
+                    VStack {
+                        Image(systemName: "doc.on.doc.fill")
+                        Text("Tutor Resources")
+                    }
+                }
+                .tag(4)
         }
     }
 }

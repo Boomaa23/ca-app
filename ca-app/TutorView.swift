@@ -68,6 +68,67 @@ struct TutorInfoPage: View {
     }
 }
 
+struct TutorResourcesView: View {
+    var body: some View {
+        VStack {
+            Text("Tutor Resources")
+            HStack {
+                VStack {
+                    Text("Tutoring Guide")
+                        .bold()
+                    Text("In this document, you will be able to find a basic guide for tutoring, and the links to give to the tutee, a link to log your hours, and a session red flag form.")
+                    Button(action: {
+                        UIApplication.shared.open(URL(string: "https://docs.google.com/document/d/11q2_DxQ0ZtA9C1SjqNrBpew9eBjVcC3dmUmeYiWexlk/edit?usp=sharing")!)
+                    }) {
+                        Text("Access Here")
+                    }
+                }
+                VStack {
+                    Text("Session Log")
+                        .bold()
+                    Text("Use this link to log your hours after each session. Make sure to ask the tutee who their teacher is and include a brief description of what you did during the session.")
+                    Button(action: {
+                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringSessionLog")!)
+                    }) {
+                        Text("Access Here")
+                    }
+                }
+            }
+            HStack {
+                VStack {
+                    Text("Feedback Form")
+                        .bold()
+                    Text("At the end of your session, please give this link to the tutee requesting if they could please fill out this general feedback form.")
+                        .font(.body)
+                    Button(action: {
+                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringFeedback")!)
+                    }) {
+                        Text("Access Here")
+                    }
+                }
+                VStack {
+                    Text("Red Flag Form")
+                        .bold()
+                    Text("If during your session something made you feel uncomfortable and that merits the attention of an adult, please fill out this form immediately.")
+                        .font(.body)
+                    Button(action: {
+                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringRedFlag")!)
+                    }) {
+                        Text("Access Here")
+                    }
+                }
+            }
+        .padding(30)
+        }
+    }
+}
+
+struct TutorResourcesView_Previews: PreviewProvider {
+    static var previews: some View {
+        TutorResourcesView()
+    }
+}
+
 struct SBUnifiedWarning: View {
     let text: String
     

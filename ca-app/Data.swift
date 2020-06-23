@@ -157,16 +157,16 @@ struct Subject {
     func withPrefix(_ level: String) -> String {
         switch prefix.loc {
             case .after:
-                return "\(level) \(prefix.value)"
+                return "\(level) \(prefix.value)".capsAP()
             case .before:
-                return "\(prefix.value) \(level)"
+                return "\(prefix.value) \(level)".capsAP()
             case .none:
-                return level
+                return level.capsAP()
         }
     }
     
     static func fromOther(_ keyText: String) -> Subject? {
-        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "english"]
+        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "english", "ap environmental science"]
         for other: String in possibleOthers {
             if keyText.contains(other) {
                 return Subject(other, SiteSection.other, (other.toCase(String.Case.title), PrefixLocation.before), [""])
