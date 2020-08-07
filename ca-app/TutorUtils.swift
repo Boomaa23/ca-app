@@ -12,11 +12,62 @@ class TutorUtils {
     static func subjAsCsv(_ tutor: Tutor) -> String {
         var outStr: String = ""
         for (index, subjectRange) in tutor.subjects.enumerated() {
-            for (levelIndex, level) in subjectRange.applicableLevels.enumerated() {
-                outStr += subjectRange.subject.withPrefix(level) + (subjectRange.applicableLevels.count - 1 != levelIndex ? ", " : "")
+            if subjectRange.subject.prefix.loc != PrefixLocation.none {
+                outStr += "\(subjectRange.subject.prefix.value) "
             }
-            outStr +=  (tutor.subjects.count - 1 != index ? "\n" : "")
+            for (levelIndex, level) in subjectRange.applicableLevels.enumerated() {
+                outStr += level + (subjectRange.applicableLevels.count - 1 != levelIndex ? ", " : "")
+            }
+            outStr += (tutor.subjects.count - 1 != index ? "\n" : "")
         }
+        return outStr
+    }
+    
+    static func sectAsCsv(_ tutor: Tutor) -> String {
+        var sectSubjMap = [SiteSection: [SubjectRange]]()
+        for section in SiteSection.allCases {
+            for subjectRange in tutor.subjects {
+                if (subjectRange.subject.section == section) {
+                    if sectSubjMap[section] == nil {
+                        sectSubjMap[section] = [SubjectRange]()
+                    }
+                    sectSubjMap[section]!.append(subjectRange)
+                }
+            }
+        }
+        var outStr: String = ""
+        //TODO sort by website order instead of alphabetically
+        for (index, section) in sectSubjMap.keys.sorted().enumerated() {
+            outStr += "\(section.rawValue.toCase(String.Case.title)): "
+            let ranges = sectSubjMap[section]!
+            var hasFirstEntry = false
+            for range in ranges {
+                for (index, level) in range.applicableLevels.enumerated() {
+                    var lvl = ""
+                    switch range.subject.prefix.compaction {
+                        case .allButOne:
+                            if index == 0 {
+                                lvl = range.subject.withPrefix(level)
+                            } else {
+                                lvl = level
+                            }
+                            break
+                        case .all:
+                            lvl = level
+                            break
+                        case .none:
+                            lvl = range.subject.withPrefix(level)
+                            break
+                    }
+                    outStr += (hasFirstEntry ? ", \(lvl)" : lvl)
+                    hasFirstEntry = true
+                }
+            }
+            if index != (sectSubjMap.count - 1) {
+                outStr += "\n"
+            }
+        }
+        
         return outStr
     }
     

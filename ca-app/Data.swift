@@ -143,10 +143,10 @@ struct Subject {
     static var allClasses: [String: Subject] = [:]
     let baseName: String
     let section: SiteSection
-    let prefix: (value: String, loc: PrefixLocation)
+    let prefix: Prefix
     let levels: [String]
     
-    init(_ baseName: String,_ section: SiteSection,_ prefix: (value: String, loc: PrefixLocation),_ levels: [String]) {
+    init(_ baseName: String,_ section: SiteSection,_ prefix: Prefix,_ levels: [String]) {
         self.baseName = baseName
         self.section = section
         self.prefix = prefix
@@ -169,26 +169,45 @@ struct Subject {
         let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "english", "ap environmental science"]
         for other: String in possibleOthers {
             if keyText.contains(other) {
-                return Subject(other, SiteSection.other, (other.toCase(String.Case.title), PrefixLocation.before), [""])
+                return Subject(other, SiteSection.other, Prefix(other.toCase(String.Case.title), PrefixLocation.before, PrefixCompaction.none), [""])
             }
         }
         return nil
     }
 }
 
-enum SiteSection: String, CaseIterable {
+enum SiteSection: String, CaseIterable, Comparable {
     case math, science, english, history, language, other
+    
+    // Sort by index of SiteSection instead of alphabetically
+    static func < (lhs: SiteSection, rhs: SiteSection) -> Bool {
+        let lhsIndex: Int = SiteSection.allCases.firstIndex(of: lhs)!
+        let rhsIndex: Int = SiteSection.allCases.firstIndex(of: rhs)!
+        return lhsIndex < rhsIndex
+    }
 }
 
-enum ClassRelation: CaseIterable {
-    case linear, distinct
+struct Prefix {
+    let value: String
+    let loc: PrefixLocation
+    let compaction: PrefixCompaction
+    
+    init(_ value: String,_ loc: PrefixLocation,_ compaction: PrefixCompaction) {
+        self.value = value
+        self.loc = loc
+        self.compaction = compaction
+    }
 }
 
 enum PrefixLocation: CaseIterable {
     case before, after, none
 }
 
-enum Grade: Int, CaseIterable {
+enum PrefixCompaction: String, CaseIterable {
+    case all, allButOne, none
+}
+
+enum Grade: Int, CaseIterable {    
     case invalid = 0
     case freshman = 9
     case sophomore = 10

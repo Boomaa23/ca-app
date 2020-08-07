@@ -21,7 +21,7 @@ struct TutorView: View {
                         .padding(5)
                     VStack(alignment: .leading) {
                         Text(tutor.getFullName())
-                        Text(TutorUtils.subjAsCsv(tutor))
+                        Text(TutorUtils.sectAsCsv(tutor))
                             .foregroundColor(.gray)
                     }
                 }
@@ -51,6 +51,11 @@ struct TutorInfoPage: View {
                     .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
                 VStack(alignment: .leading) {
                     Text(tutor.getFullName()).bold()
+                    HStack {
+                        Text("Grade:")
+                        Text("\(tutor.grade.rawValue)")
+                        Text(String("(" + "\(tutor.grade)".toCase(String.Case.title) + ")"))
+                    }
                     Text(TutorUtils.subjAsCsv(tutor))
                         .foregroundColor(.gray)
                     HStack {

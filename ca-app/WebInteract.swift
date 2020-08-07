@@ -98,7 +98,7 @@ class Parser {
         if endIndex < startIndex {
             startIndex = desc.startIndex
         }
-        var info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: " ").lowercased())
+        let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: " ").lowercased())
         for section: SiteSection in SiteSection.allCases {
             let loopSec = "\(section)"
             if info.contains(loopSec) {
@@ -119,11 +119,6 @@ class Parser {
                     }
                 }
                 if sectionRtn == subject.section {
-                    //TODO figure out a parsing system that avoids level conflicts like this
-                    if sectionRtn == SiteSection.science {
-                        info = info.replacingOccurrences(of: "honors/ap chemistry", with: "honors chemistry ap chemistry")
-                            .replacingOccurrences(of: "ap/honors chemistry", with: "honors chemistry ap chemistry")
-                    }
                     for level: String in subject.levels {
                         if thrAft.lowercased().contains(level.lowercased()) {
                             if level.count == 1 && thrAft.endIndex != thrAft.firstIndex(of: Character(level)) {
@@ -148,24 +143,17 @@ class Parser {
                 if sectionRtn == nil {
                     if info.contains(subject.baseName) {
                         sectionRtn = subject.section
-                    } else {
-                        continue
                     }
                 } else if sectionRtn == subject.section {
-                    //TODO figure out a parsing system that avoids level conflicts like this
-                    if sectionRtn == SiteSection.science {
-                        info = info.replacingOccurrences(of: "honors/ap chemistry", with: "honors chemistry ap chemistry")
-                            .replacingOccurrences(of: "ap/honors chemistry", with: "honors chemistry ap chemistry")
-                    }
                     var applLvl = [String]()
                     for level: String in subject.levels {
                         if info.contains(level.lowercased()) {
                             //TODO figure out a parsing system that avoids level conflicts like this
-                            if sectionRtn == SiteSection.science && info.contains("ap environmental science")
-                                && subject.withPrefix(level).lowercased() == "ap chemistry" && !info.contains("ap chemistry") {
-                                subjRangeRtn.append(SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""]))
-                                continue
-                            }
+//                            if sectionRtn == SiteSection.science && info.contains("ap environmental science")
+//                                && subject.withPrefix(level).lowercased() == "ap chemistry" && !info.contains("ap chemistry") {
+//                                subjRangeRtn.append(SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""]))
+//                                continue
+//                            }
 //                            info = info.replacingCharacters(in: level.lowercased().range(of: level.lowercased())!, with: "")
                             applLvl.append(level)
                         }
