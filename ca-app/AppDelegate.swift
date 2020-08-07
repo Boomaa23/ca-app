@@ -1,10 +1,5 @@
-//
-//  AppDelegate.swift
-//  ca-app
-//
-//  Created by Nikhil on 6/12/20.
-//  Copyright © 2020 Charger Academy. All rights reserved.
-//
+//  Charger Academy iOS App
+//  Copyright © 2020 Nikhil Ograin. All rights reserved.
 
 import UIKit
 
