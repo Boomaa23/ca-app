@@ -60,6 +60,15 @@ struct ContentView: View {
                     }
                 }
                 .tag(4)
+            Text("FEEDBACK")
+                .font(.title)
+                .tabItem {
+                    VStack {
+                        Image(systemName: "ant.fill")
+                        Text("Feedback")
+                    }
+                }
+                .tag(5)
         }
     }
 }

@@ -31,7 +31,6 @@ class TutorUtils {
             }
         }
         var outStr: String = ""
-        //TODO sort by website order instead of alphabetically
         for (index, section) in sectSubjMap.keys.sorted().enumerated() {
             outStr += "\(section.rawValue.toCase(String.Case.title)): "
             let ranges = sectSubjMap[section]!
@@ -54,6 +53,7 @@ class TutorUtils {
                             lvl = range.subject.withPrefix(level)
                             break
                     }
+                    lvl = lvl.trimmingCharacters(in: .whitespacesAndNewlines)
                     outStr += (hasFirstEntry ? ", \(lvl)" : lvl)
                     hasFirstEntry = true
                 }

@@ -1,5 +1,7 @@
 //  Charger Academy iOS App
 //  Copyright © 2020 Nikhil Ograin. All rights reserved.
+
+import SwiftSoup
 import UIKit
 
 class RequestHelper {
@@ -20,19 +22,13 @@ class RequestHelper {
 
 class Parser {
     static func initTutors() -> [Tutor] {
-        if Tutor.allTutors.count != 0 {
-            return Tutor.allTutors
-        }
+        Tutor.allTutors = [Tutor]()
         let raw: String = RequestHelper.caGet(relUrl: "tutors")
         do {
             let parsed = try SwiftSoup.parse(raw).body()!
             let sections = try parsed.getElementsByAttributeValue("data-ux", "ContentCards")
             for section: Element in sections {
                 let cards = try section.getElementsByAttributeValue("data-ux", "ContentCard")
-                //TODO temporary fix to get around first few sections
-                if cards.count < 4 {
-                    continue
-                }
                 for card: Element in cards {
                     let nameElem = try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()
                     let name: String
@@ -71,6 +67,7 @@ class Parser {
                         _ = Tutor(firstName: String(name[..<nameSep]), lastName: String(name[name.index(after: nameSep)...]),
                                   grade: grade, subjects: foundClasses.subjRange, imageUrl: imageUrl)
                     }
+                    
                 }
             }
         } catch let error {
@@ -104,64 +101,45 @@ class Parser {
         
         let thrFound = info.range(of: "through ");
         if thrFound != nil {
-            var thrAft = String(info[thrFound!.upperBound...])
+            let thrAft = String(info[thrFound!.upperBound...])
             for subject: Subject in Subject.allClasses.values {
-                if sectionRtn == nil {
-                    if info.contains(subject.baseName) {
-                        sectionRtn = subject.section
-                    } else {
-                        continue
-                    }
-                }
-                if sectionRtn == subject.section {
-                    for level: String in subject.levels {
+                if info.contains(subject.prefix.value.lowercased()) {
+                    let prevCtr = subjRangeRtn.count
+                    for level: String in subject.levels.reversed() {
                         if thrAft.lowercased().contains(level.lowercased()) {
-                            if level.count == 1 && thrAft.endIndex != thrAft.firstIndex(of: Character(level)) {
-                                let aftChar = thrAft[thrAft.index(thrAft.firstIndex(of: Character(level))!, offsetBy: 1)]
-                                if aftChar != Character(" ") && aftChar != Character(",") && aftChar != Character(".") {
-                                    continue
-                                }
-                            }
-                            //TODO figure out a parsing system that avoids level conflicts like this
-                            if thrAft == "3/pre-calculus " && level == "Pre-Calculus" {
-                                continue
-                            }
-                            thrAft = thrAft.replacingCharacters(in: level.lowercased().range(of: level.lowercased())!, with: "")
                             subjRangeRtn.append(SubjectRange(subject: subject, maxLevel: level))
                             break
                         }
+                    }
+                    if subjRangeRtn.count == (prevCtr + 1) {
+                        sectionRtn = subject.section
+                        break
                     }
                 }
             }
         } else {
             for subject: Subject in Subject.allClasses.values {
-                if sectionRtn == nil {
-                    if info.contains(subject.baseName) {
-                        sectionRtn = subject.section
-                    }
-                } else if sectionRtn == subject.section {
+                if info.contains(subject.prefix.value.lowercased()) {
+                    sectionRtn = subject.section
                     var applLvl = [String]()
                     for level: String in subject.levels {
                         if info.contains(level.lowercased()) {
-                            //TODO figure out a parsing system that avoids level conflicts like this
-//                            if sectionRtn == SiteSection.science && info.contains("ap environmental science")
-//                                && subject.withPrefix(level).lowercased() == "ap chemistry" && !info.contains("ap chemistry") {
-//                                subjRangeRtn.append(SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""]))
-//                                continue
-//                            }
-//                            info = info.replacingCharacters(in: level.lowercased().range(of: level.lowercased())!, with: "")
                             applLvl.append(level)
                         }
                     }
                     if applLvl.count != 0 {
                         subjRangeRtn.append(SubjectRange(subject: subject, applicableLevels: applLvl))
                     }
+                    break;
                 }
             }
         }
-        
         if sectionRtn == nil {
-            return (SiteSection.other, [SubjectRange(subject: Subject.fromOther(info)!, applicableLevels: [""])])
+             sectionRtn = SiteSection.other
+        }
+        let otherSubj = Subject.fromOther(info, sectionRtn!)
+        if otherSubj != nil {
+            subjRangeRtn.append(SubjectRange(subject: otherSubj!, applicableLevels: [""]))
         }
         return (sectionRtn!, subjRangeRtn)
     }

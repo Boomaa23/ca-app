@@ -19,9 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ = Subject("french", SiteSection.language, Prefix("French", PrefixLocation.before, PrefixCompaction.allButOne),
                     ["1", "2", "3", "AP", "IB 1", "IB 2"])
         _ = Subject("spanish", SiteSection.language, Prefix("Spanish", PrefixLocation.before, PrefixCompaction.allButOne),
-                    ["1", "2", "2 Native Speakers", "3", "3 Native Speakers", "AP", "IB 1", "IB 2"])
+                    ["1", "2", "3", "AP", "IB 1", "IB 2"])
         _ = Subject("biology", SiteSection.science, Prefix("Biology", PrefixLocation.none, PrefixCompaction.all),
-                    ["CP Biology", "AP Biology", "IB Biology", "Medical Biology", "AP Environmental Science"])
+                    ["CP Biology", "AP Biology", "IB Biology", "Medical Biology"])
         _ = Subject("physics", SiteSection.science, Prefix("Physics", PrefixLocation.none, PrefixCompaction.all),
                     ["Conceptual Physics", "CP Physics", "AP Physics 1", "AP Physics 2"])
         _ = Subject("chemistry", SiteSection.science, Prefix("Chemistry", PrefixLocation.none, PrefixCompaction.all),

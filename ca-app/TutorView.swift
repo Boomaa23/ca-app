@@ -5,10 +5,11 @@ import SwiftUI
 
 struct TutorView: View {
     static let tutorImgSize: CGFloat = 60
+    @State var pushTutors: [Tutor] = Parser.initTutors()
     
     var body: some View {
         NavigationView {
-            List(Tutor.allTutors, id: \.self) { tutor in
+            List(self.pushTutors, id: \.self) { tutor in
                 NavigationLink(destination: TutorInfoPage(tutor: tutor)) {
                     Image(uiImage: tutor.imageUrl.downloadSquare())
                         .toSquareSize(TutorView.tutorImgSize)
@@ -21,6 +22,12 @@ struct TutorView: View {
                     }
                 }
             }
+            .navigationBarItems(trailing: Button(action: {
+                self.pushTutors.removeAll()
+                self.pushTutors.append(contentsOf: Parser.initTutors())
+            }) {
+                Image(systemName: "arrow.clockwise")
+            })
             .navigationBarTitle(Text("Tutors"), displayMode: .inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -47,11 +54,9 @@ struct TutorInfoPage: View {
                 VStack(alignment: .leading) {
                     Text(tutor.getFullName()).bold()
                     HStack {
-                        Text("Grade:")
-                        Text("\(tutor.grade.rawValue)")
-                        Text(String("(" + "\(tutor.grade)".toCase(String.Case.title) + ")"))
+                        Text("Grade: \(tutor.grade.rawValue) (" + "\(tutor.grade)".toCase(String.Case.title) + ")").italic()
                     }
-                    Text(TutorUtils.subjAsCsv(tutor))
+                    Text(TutorUtils.sectAsCsv(tutor))
                         .foregroundColor(.gray)
                     HStack {
                         Text("Session Signup: ")

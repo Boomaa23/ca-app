@@ -160,11 +160,11 @@ struct Subject {
         }
     }
     
-    static func fromOther(_ keyText: String) -> Subject? {
-        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "english", "ap environmental science"]
+    static func fromOther(_ keyText: String,_ section: SiteSection = SiteSection.other) -> Subject? {
+        let possibleOthers = ["writing", "tech", "time management", "german", "latin", "art", "ap computer science", "ap environmental science"]
         for other: String in possibleOthers {
             if keyText.contains(other) {
-                return Subject(other, SiteSection.other, Prefix(other.toCase(String.Case.title), PrefixLocation.before, PrefixCompaction.none), [""])
+                return Subject(other, section, Prefix(other.toCase(String.Case.title).capsAP(), PrefixLocation.before, PrefixCompaction.none), [""])
             }
         }
         return nil
