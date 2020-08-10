@@ -47,6 +47,10 @@ extension String {
     func charAt(int: Int) -> Character {
         return self[self.index(self.startIndex, offsetBy: int)]
     }
+    
+    static func blank() -> String {
+        return ""
+    }
         
     enum Case {
         case camel, upper, lower, title

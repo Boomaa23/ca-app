@@ -5,20 +5,11 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection = 0
-    
     let scrWidth = UIScreen.main.bounds.width
  
     var body: some View {
-        TabView(selection: $selection){
-            VStack {
-                    Image("logo")
-                        .resizable()
-                        .aspectRatio(CGSize(width: 1, height: 1), contentMode: ContentMode.fit)
-                        .padding(EdgeInsets(top: 0, leading: scrWidth * 0.3, bottom: 0, trailing: scrWidth * 0.3))
-                    Text("Charger Academy").font(.largeTitle)
-                    Text("DPHS Online Tutoring").font(.headline)
-                }
-                .padding(EdgeInsets(top: scrWidth * 0.18, leading: 0, bottom: scrWidth * 0.18, trailing: 0))
+        TabView(selection: $selection) {
+            HomeView()
                 .tabItem {
                     VStack {
                         Image(systemName: "house.fill")

@@ -27,9 +27,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ = Subject("chemistry", SiteSection.science, Prefix("Chemistry", PrefixLocation.none, PrefixCompaction.all),
                     ["CP Chemistry", "Honors Chemistry", "AP Chemistry"])
         _ = Subject("worldHistory", SiteSection.history, Prefix("World History", PrefixLocation.none, PrefixCompaction.all),
-                    ["World History", "AP World History"])
+                    ["CP World History", "AP World History"])
         _ = Subject("usHistory", SiteSection.history, Prefix("US History", PrefixLocation.none, PrefixCompaction.all),
-                    ["US History", "AP US History"])
+                    ["CP US History", "AP US History"])
         
         //Populate data from web before application launch
         while Tutor.allTutors.count == 0 {

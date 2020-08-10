@@ -90,7 +90,8 @@ class Parser {
         if endIndex < startIndex {
             startIndex = desc.startIndex
         }
-        let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: ".", with: " ").lowercased())
+        //TODO remove the "U.S." parsing (ask to move to "US")
+        let info = String(String(desc[startIndex...endIndex]).replacingOccurrences(of: "U.S.", with: "US").replacingOccurrences(of: ".", with: " ").lowercased())
         for section: SiteSection in SiteSection.allCases {
             let loopSec = "\(section)"
             if info.contains(loopSec) {
@@ -111,9 +112,8 @@ class Parser {
                             break
                         }
                     }
-                    if subjRangeRtn.count == (prevCtr + 1) {
+                    if subjRangeRtn.count >= (prevCtr + 1) {
                         sectionRtn = subject.section
-                        break
                     }
                 }
             }
@@ -130,7 +130,6 @@ class Parser {
                     if applLvl.count != 0 {
                         subjRangeRtn.append(SubjectRange(subject: subject, applicableLevels: applLvl))
                     }
-                    break;
                 }
             }
         }

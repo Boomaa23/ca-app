@@ -94,6 +94,16 @@ class Tutor : Comparable, Hashable {
         return firstName.toCase(String.Case.title) + " " + lastName.toCase(String.Case.title)
     }
     
+    func getEmail() -> String? {
+        if num == nil {
+            _ = getNum()
+        }
+        if num == nil {
+            return nil
+        }
+        return "dphstutor\(num!)@gmail.com"
+    }
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(firstName)
         hasher.combine(lastName)

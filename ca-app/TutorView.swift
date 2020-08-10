@@ -41,6 +41,7 @@ struct TutorView_Previews: PreviewProvider {
 }
 
 struct TutorInfoPage: View {
+    @State private var showPullup: Bool = false
     let tutor: Tutor
     private let imgVal: CGFloat = 120
     
@@ -59,15 +60,28 @@ struct TutorInfoPage: View {
                     Text(TutorUtils.sectAsCsv(tutor))
                         .foregroundColor(.gray)
                     HStack {
-                        Text("Session Signup: ")
+                        Text("Session Signup:")
                         Text.createLink(tutor.getCalendlyUrl().toNonNil())
                     }
                     HStack {
-                        Text("Zoom Link: ")
+                        Text("Zoom Link:")
                         Text.createLink(tutor.getZoomUrl().toNonNil())
                     }
                     SBUnifiedWarning(text: tutor.getZoomUrl().toNonNil())
                 }
+            }
+            HStack {
+                Button(action: {
+                    self.showPullup.toggle()
+                }) {
+                    Image(systemName: "plus")
+                    Text("Request Session")
+                }
+                .sheet(isPresented: $showPullup, content: {
+                    MailView(to: [self.tutor.getEmail().toNonNil(String.blank())], body: "BLAH BLAH BLAH<br>BLAH BLAH")
+                })
+                .cornerRadius(12)
+                .foregroundColor(.blue)
             }
         }.padding(40)
     }
@@ -76,6 +90,7 @@ struct TutorInfoPage: View {
 struct TutorResourcesView: View {
     var body: some View {
         VStack {
+            //TODO make this access dynamic
             Text("Tutor Resources")
             HStack {
                 VStack {
