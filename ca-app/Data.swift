@@ -144,7 +144,7 @@ struct SubjectRange {
     }
 }
 
-struct Subject {
+struct Subject: Hashable {
     static var allClasses: [String: Subject] = [:]
     let baseName: String
     let section: SiteSection
@@ -178,6 +178,16 @@ struct Subject {
             }
         }
         return nil
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(baseName)
+        hasher.combine(section)
+        hasher.combine(levels)
+    }
+    
+    static func == (lhs: Subject, rhs: Subject) -> Bool {
+        lhs.hashValue == rhs.hashValue
     }
 }
 

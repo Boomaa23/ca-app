@@ -6,6 +6,8 @@ import SwiftUI
 struct TutorView: View {
     static let tutorImgSize: CGFloat = 60
     @State var pushTutors: [Tutor] = Parser.initTutors()
+    @State var showFilter: Bool = false
+    let popoverPad: CGFloat = 10
     
     var body: some View {
         NavigationView {
@@ -22,9 +24,35 @@ struct TutorView: View {
                     }
                 }
             }
-            .navigationBarItems(trailing: Button(action: {
+            .navigationBarItems(leading: HStack {
+                Button(action: {
+                    self.showFilter.toggle()
+                }) {
+                    Image(systemName: "line.horizontal.3.decrease.circle")
+                }.popover(isPresented: self.$showFilter, arrowEdge: .top, content: {
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading, spacing: self.popoverPad, content: {
+                            ForEach(Array(Subject.allClasses.values), id: \.self) { subject in
+                                ForEach(subject.levels, id: \.self) { level in
+                                    CheckboxLabel(label: subject.withPrefix(level), tutorView: self)
+                                }
+                            }
+                        })
+                        .padding(EdgeInsets(top: self.popoverPad, leading: self.popoverPad,
+                                            bottom: self.popoverPad, trailing: self.popoverPad))
+                    }
+                    .frame(width: 200, height: 350, alignment: .leading)
+                })
+                Button(action: {
+                    self.populateCheckMap(false)
+                    self.pushTutors.removeAll()
+                }) {
+                    Image(systemName: "xmark.square")
+                }
+            }, trailing: Button(action: {
                 self.pushTutors.removeAll()
                 self.pushTutors.append(contentsOf: Parser.initTutors())
+                self.populateCheckMap(true)
             }) {
                 Image(systemName: "arrow.clockwise")
             })
@@ -32,11 +60,77 @@ struct TutorView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
+    
+    func populateCheckMap(_ value: Bool) {
+        if CheckboxLabel.checkMap.count == 0 {
+            for subject: Subject in Subject.allClasses.values {
+                for level: String in subject.levels {
+                    CheckboxLabel.checkMap[subject.withPrefix(level)] = value
+                }
+            }
+        } else {
+            for i: String in CheckboxLabel.checkMap.keys {
+                CheckboxLabel.checkMap[i] = value
+            }
+        }
+    }
 }
 
 struct TutorView_Previews: PreviewProvider {
     static var previews: some View {
         TutorView()
+    }
+}
+
+struct CheckboxLabel: View {
+    static var checkMap = [String: Bool]()
+    @State var isMarked: Bool
+    let size: CGFloat = 15
+    let label: String
+    let tutorView: TutorView
+    
+    init(label: String, tutorView: TutorView) {
+        self.label = label
+        self.tutorView = tutorView
+        if CheckboxLabel.checkMap[label] == nil {
+            CheckboxLabel.checkMap[label] = true
+        }
+        _isMarked = State(initialValue: CheckboxLabel.checkMap[label]!);
+    }
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                self.isMarked.toggle()
+                CheckboxLabel.checkMap[self.label] = self.isMarked
+                self.refreshMatching()
+            }) {
+                Image(systemName: self.isMarked ? "checkmark.square" : "square")
+                    .renderingMode(.original)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: self.size, height: self.size)
+            }
+            Text(self.label)
+                .font(Font.system(size: self.size))
+        }
+    }
+    
+    func refreshMatching() {
+        self.tutorView.pushTutors.removeAll()
+        for tutor: Tutor in Tutor.allTutors {
+            for subjectRange: SubjectRange in tutor.subjects {
+                for level: String in subjectRange.applicableLevels {
+                    if CheckboxLabel.checkMap[subjectRange.subject.withPrefix(level)]! {
+                        self.tutorView.pushTutors.append(tutor)
+                        break
+                    }
+                }
+                if self.tutorView.pushTutors.contains(tutor) {
+                    break
+                }
+            }
+        }
     }
 }
 
