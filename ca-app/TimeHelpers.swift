@@ -6,6 +6,14 @@ import Foundation
 enum DayOfWeek : String, CaseIterable, Equatable {
     case sunday, monday, tuesday, wednesday, thursday, friday, saturday
     
+    static func weekdays() -> [DayOfWeek] {
+        return Array(DayOfWeek.allCases[1...5])
+    }
+    
+    static func weekends() -> [DayOfWeek] {
+        return [ sunday, saturday ]
+    }
+    
     static func == (lhs: DayOfWeek, rhs: DayOfWeek) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
@@ -56,8 +64,10 @@ struct ClockTimeRange : Equatable {
         self.duration = end.valueInSeconds() - start.valueInSeconds()
     }
     
-    func toString(_ militaryTime: Bool,_ excludeSeconds: Bool) -> String {
-        return "\(start.toString(militaryTime, excludeSeconds)) - \(end.toString(militaryTime, excludeSeconds))"
+    func toString(_ militaryTime: Bool,_ excludeSeconds: Bool,_ checkSameTime: Bool) -> String {
+        let sstr = start.toString(militaryTime, excludeSeconds)
+        let estr = end.toString(militaryTime, excludeSeconds)
+        return checkSameTime && (sstr == estr) ? "\(sstr)" : "\(sstr) - \(estr)"
     }
     
     static func fromString(_ str: String) -> ClockTimeRange? {

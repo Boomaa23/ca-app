@@ -173,18 +173,34 @@ class Parser {
                 }
                 
                 if (text.lowercased() != day) {
-                    sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.fromString(day)!, time: ClockTimeRange.fromString(text)!,
+                    sessions.append(GroupSession(title: title, daysOfWeek: [DayOfWeek.fromString(day)!], time: ClockTimeRange.fromString(text)!,
                                                  pw: pw, zoomUrl: href, imageUrl: imageUrl))
                 } else if text.contains("every weekday") {
-                    for index in 1...5 {
-                        sessions.append(GroupSession(title: title, dayOfWeek: DayOfWeek.allCases[index], time: ClockTimeRange.fromString(text)!,
-                                                     pw: nil, zoomUrl: href, imageUrl: imageUrl))
-                    }
+                    sessions.append(GroupSession(title: title, daysOfWeek: DayOfWeek.weekdays(), time: ClockTimeRange.fromString(text)!,
+                                                 pw: nil, zoomUrl: href, imageUrl: imageUrl))
                 }
             }
         } catch let error {
             print(error)
         }
         return sessions
+    }
+    
+    static func getTutorResources() -> [TutorResource] {
+        var all = [TutorResource]()
+        let raw: String = RequestHelper.caGet(relUrl: "tutor-resources")
+        do {
+            let parsed = try SwiftSoup.parse(raw).body()!
+            let cards = try parsed.getElementsByAttributeValue("data-ux", "ContentCard")
+            for card: Element in cards {
+                all.append(TutorResource(title: try card.getElementsByAttributeValue("data-ux", "ContentCardHeading").first()!.text(),
+                                         desc: try card.getElementsByAttributeValue("data-ux", "ContentCardText").first()!.text(),
+                                         url: try card.getElementsByAttributeValue("data-ux", "ContentCardButton").first()!.attr("href")
+                ))
+            }
+        } catch let error {
+            print(error)
+        }
+        return all
     }
 }

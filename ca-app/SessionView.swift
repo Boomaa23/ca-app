@@ -13,8 +13,8 @@ struct SessionView: View {
                     .padding(10)
                 VStack(alignment: .leading) {
                     Text(session.title).bold()
-                    Text(session.dayOfWeek.rawValue.toCase(String.Case.title))
-                    Text(session.time.toString(false, true))
+                    Text(self.listDays(session.daysOfWeek))
+                    Text(session.time.toString(false, true, true))
                     Text("Password: " + (session.pw ?? "None"))
                     HStack {
                         Text("Zoom Link: ")
@@ -24,6 +24,17 @@ struct SessionView: View {
                 }
             }
         }
+    }
+    
+    private func listDays(_ days: [DayOfWeek]) -> String {
+        var out = String()
+        for (index, day) in days.enumerated() {
+            out += day.rawValue.toCase(String.Case.title)
+            if index != days.count - 1 {
+                out += ", "
+            }
+        }
+        return out
     }
 }
 

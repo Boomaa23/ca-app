@@ -25,15 +25,6 @@ struct ContentView: View {
                     }
                 }
                 .tag(1)
-            Text("SESSIONS")
-                    .font(.title)
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "plus")
-                            Text("Sessions")
-                        }
-                    }
-                    .tag(2)
             SessionView()
                     .tabItem {
                         VStack {
@@ -41,7 +32,7 @@ struct ContentView: View {
                             Text("Group Sessions")
                         }
                     }
-                    .tag(3)
+                    .tag(2)
             TutorResourcesView()
                 .font(.title)
                 .tabItem {
@@ -50,8 +41,9 @@ struct ContentView: View {
                         Text("Tutor Resources")
                     }
                 }
-                .tag(4)
-            Text("FEEDBACK")
+                .tag(3)
+            MailView(to: ["info@charger.academy"], body: MailUtils.createBugReportBody(),
+                     subject: "Charger.Academy iOS App Bug Report")
                 .font(.title)
                 .tabItem {
                     VStack {
@@ -59,7 +51,7 @@ struct ContentView: View {
                         Text("Feedback")
                     }
                 }
-                .tag(5)
+                .tag(4)
         }
     }
 }

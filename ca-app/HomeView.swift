@@ -52,6 +52,8 @@ struct HomeView: View {
                                 .font(.system(size: 14))
                             Text("")
                                 .font(.system(size: 12))
+                            Text("")
+                                .font(.system(size: 12))
                             Text("Charger Academy is a 501(c)(3) nonprofit tutoring service formed through the partnership of Dos Pueblos High School's Entrepreneurship Club and DPHS Peer Academic Support Services (PASS). The goal of Charger Academy is to assist high school students within the Santa Barbara Unified School District who need additional support in core coursework (Math, English, Languages, Sciences, and Social Studies) during the transition to online instruction due to the coronavirus pandemic.")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 12))

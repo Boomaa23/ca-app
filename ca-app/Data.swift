@@ -233,15 +233,15 @@ enum Grade: Int, CaseIterable {
 struct GroupSession: Hashable {
     static var allSessions = [GroupSession]()
     let title: String
-    let dayOfWeek: DayOfWeek
+    let daysOfWeek: [DayOfWeek]
     let time: ClockTimeRange
     let pw: String?
     let zoomUrl: String
     var imageUrl: WSImgUrl
     
-    init(title: String, dayOfWeek: DayOfWeek, time: ClockTimeRange, pw: String?, zoomUrl: String, imageUrl: WSImgUrl?) {
+    init(title: String, daysOfWeek: [DayOfWeek], time: ClockTimeRange, pw: String?, zoomUrl: String, imageUrl: WSImgUrl?) {
         self.title = title
-        self.dayOfWeek = dayOfWeek
+        self.daysOfWeek = daysOfWeek
         self.time = time
         self.pw = pw
         self.zoomUrl = zoomUrl
@@ -251,12 +251,12 @@ struct GroupSession: Hashable {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(title)
-        hasher.combine(dayOfWeek)
+        hasher.combine(daysOfWeek)
     }
     
     static func == (lhs: GroupSession, rhs: GroupSession) -> Bool {
         return lhs.title == rhs.title
-            && lhs.dayOfWeek == rhs.dayOfWeek
+            && lhs.daysOfWeek == rhs.daysOfWeek
             && lhs.time == rhs.time
     }
 }
@@ -296,4 +296,10 @@ class WSImgUrl {
     func downloadSquare(_ dimension: String = "\(TutorView.tutorImgSize)") -> UIImage {
         return download(dimension, dimension)
     }
+}
+
+struct TutorResource: Hashable {
+    let title: String
+    let desc: String
+    let url: String
 }

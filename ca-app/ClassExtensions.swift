@@ -80,3 +80,7 @@ extension Text {
         }
     }
 }
+
+extension Formatter {
+    
+}

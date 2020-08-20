@@ -7,20 +7,21 @@ import MessageUI
 import SwiftUI
 
 class MailViewController: UIViewController, MFMailComposeViewControllerDelegate {
-    init(to: [String], body: String) {
+    init(to: [String], body: String, subject: String) {
         super.init(nibName: nil, bundle: nil)
-        send(to, body)
+        send(to, body, subject)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func send(_ to: [String],_ body: String) {
+    func send(_ to: [String],_ body: String,_ subject: String) {
         if MFMailComposeViewController.canSendMail() {
             let mail = MFMailComposeViewController()
             mail.mailComposeDelegate = self
             mail.setToRecipients(to)
+            mail.setSubject(subject)
             mail.setMessageBody(body, isHTML: true)
             present(mail, animated: true)
         } else {
@@ -36,16 +37,12 @@ class MailViewController: UIViewController, MFMailComposeViewControllerDelegate 
 }
 
 struct MailView: UIViewControllerRepresentable {
-    private let to: [String]
-    private let body: String
-    
-    init(to: [String], body: String) {
-        self.to = to
-        self.body = body
-    }
+    let to: [String]
+    let body: String
+    let subject: String
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<MailView>) -> MailViewController {
-        return MailViewController(to: to, body: body)
+        return MailViewController(to: to, body: body, subject: subject)
     }
     
     func updateUIViewController(_ uiViewController: MailViewController, context: UIViewControllerRepresentableContext<MailView>) {
@@ -54,8 +51,19 @@ struct MailView: UIViewControllerRepresentable {
 
 struct MailView_Previews: PreviewProvider {
     static var previews: some View {
-        MailView(to: [String](), body: String())
+        MailView(to: [String](), body: String(), subject: String())
     }
 }
 
+class MailUtils {
+    static func createBugReportBody() -> String {
+        return "Charger.Academy iOS App Bug Report\n" +
+            "----------------------------------" +
+            "Date: " + ISO8601DateFormatter().string(from: Date()) + "\n" +
+            "Name (optional): \n" +
+            "Email (optional): \n" +
+            "Issue Title: \n" +
+            "Issue Description: \n"
+    }
+}
 

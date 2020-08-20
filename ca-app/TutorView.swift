@@ -44,10 +44,17 @@ struct TutorView: View {
                     .frame(width: 200, height: 350, alignment: .leading)
                 })
                 Button(action: {
-                    self.populateCheckMap(false)
-                    self.pushTutors.removeAll()
+                    if (self.pushTutors.count < Tutor.allTutors.count) {
+                        self.populateCheckMap(true)
+                        self.pushTutors.removeAll()
+                        self.pushTutors.append(contentsOf: Tutor.allTutors)
+                    } else {
+                        self.populateCheckMap(false)
+                        self.pushTutors.removeAll()
+                    }
                 }) {
-                    Image(systemName: "xmark.square")
+                    Image(systemName: self.pushTutors.count == 0 ? "square" :
+                        self.pushTutors.count == Tutor.allTutors.count ? "checkmark.square" : "square.fill")
                 }
             }, trailing: Button(action: {
                 self.pushTutors.removeAll()
@@ -154,10 +161,6 @@ struct TutorInfoPage: View {
                     Text(TutorUtils.sectAsCsv(tutor))
                         .foregroundColor(.gray)
                     HStack {
-                        Text("Session Signup:")
-                        Text.createLink(tutor.getCalendlyUrl().toNonNil())
-                    }
-                    HStack {
                         Text("Zoom Link:")
                         Text.createLink(tutor.getZoomUrl().toNonNil())
                     }
@@ -166,73 +169,49 @@ struct TutorInfoPage: View {
             }
             HStack {
                 Button(action: {
-                    self.showPullup.toggle()
+                    UIApplication.shared.open(URL(string: self.tutor.getCalendlyUrl().toNonNil(String.blank()))!)
                 }) {
                     Image(systemName: "plus")
                     Text("Request Session")
                 }
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 40))
+                Button(action: {
+                    self.showPullup.toggle()
+                }) {
+                    Image(systemName: "envelope")
+                    Text("Contact Tutor")
+                }
                 .sheet(isPresented: $showPullup, content: {
-                    MailView(to: [self.tutor.getEmail().toNonNil(String.blank())], body: "BLAH BLAH BLAH<br>BLAH BLAH")
+                    MailView(to: [self.tutor.getEmail().toNonNil(String.blank())], body: "BLAH BLAH BLAH<br>BLAH BLAH", subject: "")
                 })
                 .cornerRadius(12)
                 .foregroundColor(.blue)
             }
+            .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
         }.padding(40)
     }
 }
 
 struct TutorResourcesView: View {
+    private var allResources = Parser.getTutorResources()
+    
     var body: some View {
-        VStack {
-            //TODO make this access dynamic
-            Text("Tutor Resources")
-            HStack {
+        ScrollView {
+            ForEach(allResources, id: \.self) { resource in
                 VStack {
-                    Text("Tutoring Guide")
-                        .bold()
-                    Text("In this document, you will be able to find a basic guide for tutoring, and the links to give to the tutee, a link to log your hours, and a session red flag form.")
+                    Text(resource.title).bold()
+                        .padding(.bottom, 10)
+                    Text(resource.desc).font(.body)
+                        .padding(.bottom, 10)
                     Button(action: {
-                        UIApplication.shared.open(URL(string: "https://docs.google.com/document/d/11q2_DxQ0ZtA9C1SjqNrBpew9eBjVcC3dmUmeYiWexlk/edit?usp=sharing")!)
+                        UIApplication.shared.open(URL(string: resource.url)!)
                     }) {
                         Text("Access Here")
                     }
                 }
-                VStack {
-                    Text("Session Log")
-                        .bold()
-                    Text("Use this link to log your hours after each session. Make sure to ask the tutee who their teacher is and include a brief description of what you did during the session.")
-                    Button(action: {
-                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringSessionLog")!)
-                    }) {
-                        Text("Access Here")
-                    }
-                }
+                .padding(.bottom, 40)
             }
-            HStack {
-                VStack {
-                    Text("Feedback Form")
-                        .bold()
-                    Text("At the end of your session, please give this link to the tutee requesting if they could please fill out this general feedback form.")
-                        .font(.body)
-                    Button(action: {
-                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringFeedback")!)
-                    }) {
-                        Text("Access Here")
-                    }
-                }
-                VStack {
-                    Text("Red Flag Form")
-                        .bold()
-                    Text("If during your session something made you feel uncomfortable and that merits the attention of an adult, please fill out this form immediately.")
-                        .font(.body)
-                    Button(action: {
-                        UIApplication.shared.open(URL(string: "https://tinyurl.com/OnlineTutoringRedFlag")!)
-                    }) {
-                        Text("Access Here")
-                    }
-                }
-            }
-        .padding(30)
+            .padding(100)
         }
     }
 }
