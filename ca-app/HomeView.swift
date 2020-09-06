@@ -6,6 +6,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var showInfo = false
+    @State private var showCopyright = false
     private let scrWidth: CGFloat = UIScreen.main.bounds.width
     private let scrHeight: CGFloat = UIScreen.main.bounds.height
     private let logoPadding: CGFloat = 0.3
@@ -23,18 +24,27 @@ struct HomeView: View {
                             .padding(EdgeInsets(top: 0, leading: scrWidth * logoPadding, bottom: 0, trailing: scrWidth * logoPadding))
                         Text("Charger Academy").font(.largeTitle)
                         Text("DPHS Online Tutoring").font(.headline)
+                        Text(String.blank())
+                            .font(.system(size: 32))
+                        Text(String.blank())
+                            .font(.system(size: 32))
+                        Button(action: {
+                            self.showInfo.toggle()
+                        }) {
+                            WebButton.create("Info")
+                        }
                     }
                     .padding(EdgeInsets(top: scrWidth * pagePadding, leading: 0, bottom: scrWidth * pagePadding, trailing: 0))
                 }
                 .navigationBarItems(trailing: Button(action: {
-                    self.showInfo.toggle()
+                    self.showCopyright.toggle()
                 }) {
-                    Image(systemName: "info.circle")
+                    Image(systemName: "ellipsis")
                 })
             }
             .navigationViewStyle(StackNavigationViewStyle())
             .navigationBarTitle(Text(""), displayMode: .inline)
-            if showInfo {
+            if showCopyright {
                 ZStack {
                     Color.gray
                 }.opacity(0.5)
@@ -47,29 +57,55 @@ struct HomeView: View {
                             Text("Code: Copyright © 2020 Nikhil Ograin. All rights reserved.")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
+                            Text(String.blank())
+                                .font(.system(size: 12))
                             Text("Content: Copyright © 2020 Charger Academy. All rights reserved.")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
-                            Text("")
-                                .font(.system(size: 12))
-                            Text("")
-                                .font(.system(size: 12))
-                            Text("Charger Academy is a 501(c)(3) nonprofit tutoring service formed through the partnership of Dos Pueblos High School's Entrepreneurship Club and DPHS Peer Academic Support Services (PASS). The goal of Charger Academy is to assist high school students within the Santa Barbara Unified School District who need additional support in core coursework (Math, English, Languages, Sciences, and Social Studies) during the transition to online instruction due to the coronavirus pandemic.")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 12))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
                         }
                         .padding(EdgeInsets(top: aboutMidPadding, leading: 0, bottom: aboutMidPadding, trailing: 0))
+                        Button("Close", action: {
+                            self.showCopyright.toggle()
+                        })
+                    }.padding()
+                }
+                .frame(width: 470, height: 150, alignment: .center)
+                .cornerRadius(15)
+            }
+            if showInfo {
+                ZStack {
+                    Color.gray
+                }.opacity(0.5)
+                ZStack {
+                    Color.white
+                    VStack(alignment: .center) {
+                        Text("Charger Academy iOS App")
+                            .font(.headline)
+                        VStack {
+                            Text("Dos Pueblos High School's Entrepreneurship Club and DPHS Peer Academic Support Services (PASS) have collaborated to offer this tutoring site in order to assist high school students within the Santa Barbara Unified School District who need additional support in core coursework (Math, English, Languages, Sciences, Social Studies) and during the transition to online instruction due to the recent coronavirus pandemic.")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 14))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(nil)
+                            Text(String.blank())
+                                .font(.system(size: 14))
+                            Text("Thank you for supporting Charger.Academy!")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                            Image("mtcbt-sponsor")
+                                    .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 300, height: 90, alignment: .center)
+                        }.padding(EdgeInsets(top: aboutMidPadding, leading: 0, bottom: aboutMidPadding, trailing: 0))
                         Button("Close", action: {
                             self.showInfo.toggle()
                         })
                     }.padding()
                 }
-                .frame(width: 460, height: 250, alignment: .center)
+                .frame(width: 550, height: 370, alignment: .center)
                 .cornerRadius(15)
             }
         }
     }
 }
-	

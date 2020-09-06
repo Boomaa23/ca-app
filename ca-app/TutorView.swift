@@ -25,36 +25,48 @@ struct TutorView: View {
                 }
             }
             .navigationBarItems(leading: HStack {
-                Button(action: {
-                    self.showFilter.toggle()
-                }) {
-                    Image(systemName: "line.horizontal.3.decrease.circle")
-                }.popover(isPresented: self.$showFilter, arrowEdge: .top, content: {
-                    ScrollView(.vertical) {
-                        VStack(alignment: .leading, spacing: self.popoverPad, content: {
-                            ForEach(Array(Subject.allClasses.values), id: \.self) { subject in
-                                ForEach(subject.levels, id: \.self) { level in
-                                    CheckboxLabel(label: subject.withPrefix(level), tutorView: self)
+                VStack {
+                    Text("Filter")
+                        .font(.system(size: 12))
+                        .padding(.bottom, 0)
+                        .foregroundColor(.gray)
+                    Button(action: {
+                        self.showFilter.toggle()
+                    }) {
+                        Image(systemName: "line.horizontal.3.decrease.circle")
+                    }.popover(isPresented: self.$showFilter, arrowEdge: .top, content: {
+                        ScrollView(.vertical) {
+                            VStack(alignment: .leading, spacing: self.popoverPad, content: {
+                                ForEach(Array(Subject.allClasses.values), id: \.self) { subject in
+                                    ForEach(subject.levels, id: \.self) { level in
+                                        CheckboxLabel(label: subject.withPrefix(level), tutorView: self)
+                                    }
                                 }
-                            }
-                        })
-                        .padding(EdgeInsets(top: self.popoverPad, leading: self.popoverPad,
-                                            bottom: self.popoverPad, trailing: self.popoverPad))
+                            })
+                            .padding(EdgeInsets(top: self.popoverPad, leading: self.popoverPad,
+                                                bottom: self.popoverPad, trailing: self.popoverPad))
+                        }
+                        .frame(width: 200, height: 350, alignment: .leading)
+                    })
+                }
+                VStack {
+                    Text("Select")
+                        .font(.system(size: 12))
+                        .padding(.bottom, 0)
+                        .foregroundColor(.gray)
+                    Button(action: {
+                        if (self.pushTutors.count < Tutor.allTutors.count) {
+                            self.populateCheckMap(true)
+                            self.pushTutors.removeAll()
+                            self.pushTutors.append(contentsOf: Tutor.allTutors)
+                        } else {
+                            self.populateCheckMap(false)
+                            self.pushTutors.removeAll()
+                        }
+                    }) {
+                        Image(systemName: self.pushTutors.count == 0 ? "square" :
+                            self.pushTutors.count == Tutor.allTutors.count ? "checkmark.square" : "square.fill")
                     }
-                    .frame(width: 200, height: 350, alignment: .leading)
-                })
-                Button(action: {
-                    if (self.pushTutors.count < Tutor.allTutors.count) {
-                        self.populateCheckMap(true)
-                        self.pushTutors.removeAll()
-                        self.pushTutors.append(contentsOf: Tutor.allTutors)
-                    } else {
-                        self.populateCheckMap(false)
-                        self.pushTutors.removeAll()
-                    }
-                }) {
-                    Image(systemName: self.pushTutors.count == 0 ? "square" :
-                        self.pushTutors.count == Tutor.allTutors.count ? "checkmark.square" : "square.fill")
                 }
             }, trailing: Button(action: {
                 self.pushTutors.removeAll()
@@ -206,7 +218,7 @@ struct TutorResourcesView: View {
                     Button(action: {
                         UIApplication.shared.open(URL(string: resource.url)!)
                     }) {
-                        Text("Access Here")
+                        WebButton.create("Access Here").font(.body)
                     }
                 }
                 .padding(.bottom, 40)
@@ -227,10 +239,20 @@ struct SBUnifiedWarning: View {
     
     var body: some View {
         HStack {
-            if text.contains("sbunified") {
+            if text.lowercased().contains("sbunified") {
                 Text("WARNING: ").bold()
                 Text("SBUnified Zoom account required")
             }
         }
+    }
+}
+
+class WebButton {
+    static func create(_ text: String) -> some View {
+        return Text(text)
+            .padding(EdgeInsets(top: 10, leading: 50, bottom: 10, trailing: 50))
+            .foregroundColor(.white)
+            .background(Color.init(red: 0, green: 51 / 255, blue: 102 / 255))
+            .cornerRadius(40)
     }
 }

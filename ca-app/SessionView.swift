@@ -5,25 +5,29 @@ import SwiftUI
 
 struct SessionView: View {
     var body: some View {
-        List(GroupSession.allSessions, id: \.self) { session in
-            HStack {
-                Image(uiImage: session.imageUrl.downloadSquare())
-                    .toSquareSize(TutorView.tutorImgSize)
-                    .cornerRadius(TutorView.tutorImgSize / 2)
-                    .padding(10)
-                VStack(alignment: .leading) {
-                    Text(session.title).bold()
-                    Text(self.listDays(session.daysOfWeek))
-                    Text(session.time.toString(false, true, true))
-                    Text("Password: " + (session.pw ?? "None"))
-                    HStack {
-                        Text("Zoom Link: ")
-                        Text.createLink(session.zoomUrl)
+        NavigationView {
+            List(GroupSession.allSessions, id: \.self) { session in
+                HStack {
+                    Image(uiImage: session.imageUrl.downloadSquare())
+                        .toSquareSize(TutorView.tutorImgSize)
+                        .cornerRadius(TutorView.tutorImgSize / 2)
+                        .padding(10)
+                    VStack(alignment: .leading) {
+                        Text(session.title).bold()
+                        Text(self.listDays(session.daysOfWeek))
+                        Text(session.time.toString(false, true, true))
+                        Text("Password: " + (session.pw ?? "None"))
+                        HStack {
+                            Text("Zoom Link: ")
+                            Text.createLink(session.zoomUrl)
+                        }
+                        SBUnifiedWarning(text: session.zoomUrl)
                     }
-                    SBUnifiedWarning(text: session.zoomUrl)
                 }
             }
+            .navigationBarTitle(Text("Group Sessions"), displayMode: .inline)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func listDays(_ days: [DayOfWeek]) -> String {
