@@ -1,4 +1,5 @@
 .DS_Store
 *.storyboard
 .idea/*
-*.xcodeproj/*
+ca-app.xcodeproj/xcuserdata/*
+ca-app.xcodeproj/project.xcworkspace/xcuserdata/*
