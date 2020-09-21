@@ -12,6 +12,7 @@ struct HomeView: View {
     private let logoPadding: CGFloat = 0.3
     private let pagePadding: CGFloat = 0.18
     private let aboutMidPadding: CGFloat = 10
+    private var isIpad = UIDevice.current.userInterfaceIdiom == .pad
     
     var body: some View {
         ZStack {
@@ -48,29 +49,13 @@ struct HomeView: View {
                 ZStack {
                     Color.gray
                 }.opacity(0.5)
-                ZStack {
-                    Color.white
-                    VStack(alignment: .center) {
-                        Text("Charger Academy iOS App")
-                            .font(.headline)
-                        VStack {
-                            Text("Code: Copyright © 2020 Nikhil Ograin. All rights reserved.")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 14))
-                            Text(String.blank())
-                                .font(.system(size: 12))
-                            Text("Content: Copyright © 2020 Charger Academy. All rights reserved.")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 14))
-                        }
-                        .padding(EdgeInsets(top: aboutMidPadding, leading: 0, bottom: aboutMidPadding, trailing: 0))
-                        Button("Close", action: {
-                            self.showCopyright.toggle()
-                        })
-                    }.padding()
+                if isIpad {
+                    getInfoStack()
+                        .frame(width: 470, height: 150, alignment: .center)
+                } else {
+                    getInfoStack()
+                        .frame(width: 300, height: 250, alignment: .center)
                 }
-                .frame(width: 470, height: 150, alignment: .center)
-                .cornerRadius(15)
             }
             if showInfo {
                 ZStack {
@@ -103,9 +88,37 @@ struct HomeView: View {
                         })
                     }.padding()
                 }
-                .frame(width: 550, height: 370, alignment: .center)
+                .frame(width: isIpad ? 550 : 350, height: isIpad ? 370 : 420, alignment: .center)
                 .cornerRadius(15)
             }
         }
+    }
+    
+    func getInfoStack() -> some View {
+        return ZStack {
+            Color.white
+            VStack(alignment: .center) {
+                Text("Charger Academy iOS App")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                VStack {
+                    Text("Code: Copyright © 2020 Nikhil Ograin. All rights reserved.")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14))
+                        .multilineTextAlignment(.center)
+                    Text(String.blank())
+                        .font(.system(size: 12))
+                    Text("Content: Copyright © 2020 Charger Academy. All rights reserved.")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(EdgeInsets(top: aboutMidPadding, leading: 0, bottom: aboutMidPadding, trailing: 0))
+                Button("Close", action: {
+                    self.showCopyright.toggle()
+                })
+            }.padding()
+        }
+        .cornerRadius(15)
     }
 }

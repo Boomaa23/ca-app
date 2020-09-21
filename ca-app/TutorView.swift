@@ -160,23 +160,17 @@ struct TutorInfoPage: View {
     
     var body: some View {
         VStack {
-            HStack(alignment: .top) {
-                Image(uiImage: tutor.imageUrl.downloadSquare("\(imgVal)"))
-                    .toSquareSize(imgVal)
-                    .cornerRadius(imgVal / 2)
-                    .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
-                VStack(alignment: .leading) {
-                    Text(tutor.getFullName()).bold()
-                    HStack {
-                        Text("Grade: \(tutor.grade.rawValue) (" + "\(tutor.grade)".toCase(String.Case.title) + ")").italic()
-                    }
-                    Text(TutorUtils.sectAsCsv(tutor))
-                        .foregroundColor(.gray)
-                    HStack {
-                        Text("Zoom Link:")
-                        Text.createLink(tutor.getZoomUrl().toNonNil())
-                    }
-                    SBUnifiedWarning(text: tutor.getZoomUrl().toNonNil())
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                HStack(alignment: .top) {
+                    getImage()
+                        .padding(.trailing, 20)
+                    getClassStack()
+                }
+            } else {
+                VStack {
+                    getImage()
+                        .padding(.bottom, 20)
+                    getClassStack()
                 }
             }
             HStack {
@@ -202,6 +196,28 @@ struct TutorInfoPage: View {
             .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
         }.padding(40)
     }
+    
+    func getImage() -> some View {
+        return Image(uiImage: tutor.imageUrl.downloadSquare("\(imgVal)"))
+            .toSquareSize(imgVal)
+            .cornerRadius(imgVal / 2)
+    }
+    
+    func getClassStack() -> some View {
+        return VStack(alignment: .leading) {
+            Text(tutor.getFullName()).bold()
+            HStack {
+                Text("Grade: \(tutor.grade.rawValue) (" + "\(tutor.grade)".toCase(String.Case.title) + ")").italic()
+            }
+            Text(TutorUtils.sectAsCsv(tutor))
+                .foregroundColor(.gray)
+            HStack {
+                Text("Zoom Link:")
+                Text.createLink(tutor.getZoomUrl().toNonNil())
+            }
+            SBUnifiedWarning(text: tutor.getZoomUrl().toNonNil())
+        }
+    }
 }
 
 struct TutorResourcesView: View {
@@ -215,6 +231,7 @@ struct TutorResourcesView: View {
                         .padding(.bottom, 10)
                     Text(resource.desc).font(.body)
                         .padding(.bottom, 10)
+                        .multilineTextAlignment(.center)
                     Button(action: {
                         UIApplication.shared.open(URL(string: resource.url)!)
                     }) {
@@ -223,7 +240,7 @@ struct TutorResourcesView: View {
                 }
                 .padding(.bottom, 40)
             }
-            .padding(100)
+            .padding(UIScreen.main.bounds.height * 0.05)
         }
     }
 }

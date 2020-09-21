@@ -14,11 +14,10 @@ struct SessionView: View {
                         .padding(10)
                     VStack(alignment: .leading) {
                         Text(session.title).bold()
-                        Text(self.listDays(session.daysOfWeek))
-                        Text(session.time.toString(false, true, true))
+                        Text("\(self.listDays(session.daysOfWeek)) \(session.time.toString(false, true, true))")
                         Text("Password: " + (session.pw ?? "None"))
                         HStack {
-                            Text("Zoom Link: ")
+                            Text(UIDevice.current.userInterfaceIdiom == .pad ? "Zoom Link: " : "Zoom \n Link:")
                             Text.createLink(session.zoomUrl)
                         }
                         SBUnifiedWarning(text: session.zoomUrl)
